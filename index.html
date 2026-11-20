@@ -1,0 +1,1491 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atelier Musique</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Concept : une appli de leçons courtes. Un parcours par unité (bannière violette, nœuds en zigzag), un écran = une idée. */
+:root{
+  --bg:#FAF8F4; --surface:#FFFFFF; --tint:#F3F0FA; --line:#E3DFEE; --line-deep:#CFC9E0;
+  --fg:#1B1930; --muted:#615C7A;
+  --accent:#5340D0; --accent-deep:#34269B; --accent-ink:#FFFFFF; --accent-soft:#E9E5FA; --on-accent-soft:rgba(255,255,255,.22);
+  --good:#17804D; --good-soft:#DDF3E6; --bad:#B8342E; --bad-soft:#FBE3E0;
+  --gold:#EAC352; --gold-deep:#B3922F; --gold-ink:#3A2C06;
+  --kw:#FFFFFF; --kfg:#1B1930; --kline:#B9B3CF; --kb:#2A2740; --kbfg:#F1EFFA; --press:#D9D2F7;
+  --keygood:#17804D; --keybad:#B8342E; --tgt:#DCD5F8; --given:#E6E3EF;
+  --font-display:'Baloo 2','Trebuchet MS',system-ui,sans-serif;
+  --font-body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14121D; --surface:#1E1B2C; --tint:#252238; --line:#383453; --line-deep:#4A4568;
+    --fg:#F1EFFA; --muted:#A9A4C2;
+    --accent:#8F7DFF; --accent-deep:#5442C9; --accent-ink:#120F26; --accent-soft:#2F2A52; --on-accent-soft:rgba(18,15,38,.16);
+    --good:#5FD28F; --good-soft:#18362A; --bad:#FF8C84; --bad-soft:#41211F;
+    --kw:#ECE9F7; --kfg:#1B1930; --kline:#6A6585; --kb:#0C0A14; --kbfg:#F1EFFA; --press:#C9C0F5; --tgt:#B9ADF7; --given:#C4C0D4;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14121D; --surface:#1E1B2C; --tint:#252238; --line:#383453; --line-deep:#4A4568;
+  --fg:#F1EFFA; --muted:#A9A4C2;
+  --accent:#8F7DFF; --accent-deep:#5442C9; --accent-ink:#120F26; --accent-soft:#2F2A52; --on-accent-soft:rgba(18,15,38,.16);
+  --good:#5FD28F; --good-soft:#18362A; --bad:#FF8C84; --bad-soft:#41211F;
+  --kw:#ECE9F7; --kfg:#1B1930; --kline:#6A6585; --kb:#0C0A14; --kbfg:#F1EFFA; --press:#C9C0F5; --tgt:#B9ADF7; --given:#C4C0D4;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{
+  background:var(--bg); color:var(--fg); font-family:var(--font-body); font-size:16px; line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:8px; padding-bottom:48px;
+}
+button{font-family:inherit}
+:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
+.app{max-width:720px; margin:0 auto}
+.top{display:flex; align-items:center; justify-content:space-between; padding:14px 0 6px}
+.brand{display:flex; align-items:center; gap:10px; font:800 1.4rem/1 var(--font-display)}
+.brand svg{width:32px; height:32px}
+.logo-bg{fill:var(--accent)} .logo-fg{fill:var(--accent-ink)} .logo-st{fill:none; stroke:var(--accent-ink); stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round}
+.tag{font:700 .72rem var(--font-body); letter-spacing:.08em; text-transform:uppercase; color:var(--muted); border:1.5px solid var(--line); border-radius:99px; padding:4px 10px}
+.tabs{display:flex; gap:8px; overflow-x:auto; padding:10px 2px 14px; scrollbar-width:thin}
+.tab{flex:none; font:700 .95rem var(--font-body); border:2px solid var(--line); background:var(--surface); color:var(--fg); padding:9px 16px; border-radius:99px; cursor:pointer; box-shadow:0 3px 0 var(--line); white-space:nowrap}
+.tab[aria-selected="true"]{background:var(--accent); border-color:var(--accent); color:var(--accent-ink); box-shadow:0 3px 0 var(--accent-deep)}
+.tab.ghost{border-style:dashed; color:var(--muted); box-shadow:none; cursor:default; background:transparent}
+.eyebrow{margin:18px 0 0; font:800 .75rem var(--font-body); letter-spacing:.1em; text-transform:uppercase; color:var(--accent)}
+h1.page{font:800 clamp(2rem,6vw,2.7rem)/1.05 var(--font-display); margin:.15em 0 .3em; text-wrap:balance}
+.lede{color:var(--muted); max-width:60ch; margin:0}
+.card{border:2px solid var(--line); background:var(--surface); border-radius:20px; padding:18px; margin-top:16px}
+.card h2{font:800 1.15rem var(--font-display); margin:0 0 8px}
+ul.plain{margin:0; padding-left:1.15em} ul.plain li{margin:.2em 0}
+.chips{display:flex; flex-wrap:wrap; gap:8px; list-style:none; padding:0; margin:0}
+.chipx{background:var(--accent-soft); border-radius:14px; padding:6px 12px; font-size:.92rem; font-weight:700}
+.status{margin-top:18px; color:var(--muted); font-size:.95rem}
+.linkbtn{background:none; border:0; color:var(--accent); font:700 .95rem var(--font-body); text-decoration:underline dotted; text-underline-offset:4px; cursor:pointer; padding:6px 2px}
+.btn{font:800 1rem var(--font-body); letter-spacing:.05em; text-transform:uppercase; border:0; border-radius:16px; padding:14px 22px; background:var(--accent); color:var(--accent-ink); box-shadow:0 4px 0 var(--accent-deep); cursor:pointer; transition:transform .08s,box-shadow .08s; display:inline-flex; align-items:center; justify-content:center; gap:8px}
+.btn:active:not([disabled]){transform:translateY(3px); box-shadow:0 1px 0 var(--accent-deep)}
+.btn[disabled]{background:var(--line); color:var(--muted); box-shadow:0 4px 0 var(--line-deep); cursor:not-allowed}
+.btn.ghost{background:var(--surface); color:var(--accent); border:2px solid var(--line); box-shadow:0 4px 0 var(--line); padding:11px 18px}
+.btn.small{padding:9px 14px; font-size:.85rem}
+.btn.wide{width:100%}
+.row{display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-top:12px}
+
+/* Parcours */
+.modhead{margin-bottom:6px}
+.unit{margin-top:30px}
+.ubanner{background:var(--accent); color:var(--accent-ink); border-radius:24px; padding:16px 18px 18px; box-shadow:0 5px 0 var(--accent-deep); display:grid; grid-template-columns:1fr auto; gap:12px; align-items:start}
+.ubanner .ue{margin:0; font:800 .72rem var(--font-body); letter-spacing:.1em; text-transform:uppercase; opacity:.85}
+.ubanner h2{margin:2px 0 2px; font:800 1.7rem/1.1 var(--font-display)}
+.ubanner p.ud{margin:0 0 10px; opacity:.95}
+.glyph{width:62px; height:62px; border-radius:18px; background:var(--on-accent-soft); display:grid; place-items:center; font:800 1.7rem var(--font-display)}
+.uchip{display:inline-flex; align-items:center; gap:8px; border:0; background:var(--on-accent-soft); color:inherit; border-radius:99px; padding:7px 14px 7px 10px; font:800 .95rem var(--font-body); cursor:pointer}
+.uchip svg{width:18px; height:18px; flex:none}
+.uchip .chev{transition:transform .2s}
+.uchip[aria-expanded="false"] .chev{transform:rotate(-90deg)}
+.path{list-style:none; margin:0; padding:30px 0 6px; display:flex; flex-direction:column; gap:22px}
+.path li{display:flex; justify-content:center}
+.node{display:flex; flex-direction:column; align-items:center; text-align:center; width:min(250px,72vw); background:none; border:0; cursor:pointer; color:var(--fg); transform:translateX(var(--dx,0px)); padding:0}
+.disc{width:78px; height:78px; border-radius:50%; background:var(--accent); color:var(--accent-ink); display:grid; place-items:center; box-shadow:0 7px 0 var(--accent-deep); transition:transform .08s,box-shadow .08s}
+.disc svg{width:34px; height:34px}
+.node.k-quiz .disc{border-radius:26px}
+.node.done .disc{background:var(--gold); color:var(--gold-ink); box-shadow:0 7px 0 var(--gold-deep)}
+.node:active .disc{transform:translateY(5px); box-shadow:0 2px 0 var(--accent-deep)}
+.node.done:active .disc{box-shadow:0 2px 0 var(--gold-deep)}
+.nt{font:800 1.05rem/1.2 var(--font-body); margin-top:16px}
+.ns{font-weight:700; color:var(--muted); font-size:.9rem}
+.mods{list-style:none; padding:0; margin:14px 0 0; display:grid; gap:10px}
+.mod{display:grid; grid-template-columns:auto 1fr auto; gap:14px; align-items:start; border:2px solid var(--line); background:var(--surface); border-radius:18px; padding:14px; opacity:.85}
+.num{width:38px; height:38px; border-radius:12px; background:var(--line); color:var(--muted); display:grid; place-items:center; font:800 1.15rem var(--font-display)}
+.mod h3{margin:0; font:800 1.1rem/1.2 var(--font-display); color:var(--muted)}
+.mod p{margin:.2em 0 0; color:var(--muted); font-size:.92rem}
+.soon{font:700 .72rem var(--font-body); letter-spacing:.06em; text-transform:uppercase; color:var(--muted); border:1.5px solid var(--line); border-radius:99px; padding:3px 9px; align-self:center; white-space:nowrap}
+.next-h{margin:34px 0 0; font:800 1.3rem var(--font-display)}
+.resume{position:fixed; right:max(16px,env(safe-area-inset-right,0px)); bottom:calc(16px + env(safe-area-inset-bottom,0px)); z-index:10; border-radius:99px; padding:14px 22px 14px 18px}
+.resume svg{width:20px; height:20px}
+.pbottom{height:84px}
+
+/* Leçon */
+.lesson{position:fixed; inset:0; z-index:20; background:var(--bg); display:flex; flex-direction:column; padding-top:env(safe-area-inset-top,0px)}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px))}
+.lhead{display:flex; align-items:center; gap:14px; padding-top:12px; padding-bottom:8px; max-width:720px; width:100%; margin:0 auto}
+.icon{width:44px; height:44px; border:0; background:none; color:var(--muted); border-radius:12px; cursor:pointer; display:grid; place-items:center; flex:none}
+.track{flex:1; height:16px; border-radius:99px; background:var(--line); overflow:hidden}
+.fill{height:100%; width:0; background:var(--accent); border-radius:99px; transition:width .35s ease}
+.count{font:800 .95rem var(--font-body); color:var(--muted); min-width:3.2ch; text-align:right; font-variant-numeric:tabular-nums}
+.lbody{flex:1; overflow-y:auto; padding-top:8px; padding-bottom:28px}
+.lwrap{max-width:672px; margin:0 auto}
+.lesson h2{font:800 clamp(1.7rem,5.5vw,2.3rem)/1.1 var(--font-display); margin:.5em 0 .4em; text-wrap:balance}
+.lead{font-size:1.1rem; margin:0 0 .8em}
+.hl{color:var(--accent); font-weight:800}
+.tip{background:var(--tint); border:2px solid var(--line); border-radius:16px; padding:12px 14px; margin:16px 0}
+.lfoot{border-top:2px solid var(--line); background:var(--bg); padding-top:14px; padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+.lfoot.good{background:var(--good-soft); border-top-color:var(--good)}
+.lfoot.bad{background:var(--bad-soft); border-top-color:var(--bad)}
+.lfoot-in{max-width:672px; margin:0 auto; display:grid; gap:10px}
+.fb{margin:0; font-weight:700}
+.fb:empty{display:none}
+.lfoot.good .fb{color:var(--good)} .lfoot.bad .fb{color:var(--bad)}
+.fiche{margin:24px 0 0; color:var(--muted); font-size:.92rem}
+.opts{display:grid; gap:12px; margin-top:18px}
+.opt{width:100%; text-align:left; font:700 1.1rem var(--font-body); color:var(--fg); background:var(--surface); border:2px solid var(--line); border-radius:16px; padding:14px 16px; cursor:pointer; box-shadow:0 3px 0 var(--line)}
+.opt.sel{border-color:var(--accent); background:var(--accent-soft); box-shadow:0 3px 0 var(--accent)}
+.opt.good{border-color:var(--good); background:var(--good-soft); color:var(--good); box-shadow:0 3px 0 var(--good)}
+.opt.bad{border-color:var(--bad); background:var(--bad-soft); color:var(--bad); box-shadow:0 3px 0 var(--bad)}
+.notes{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; margin:18px 0}
+.nchip{border:2px solid var(--line); background:var(--surface); border-radius:14px; padding:10px 0; display:grid; gap:2px; justify-items:center; cursor:pointer; box-shadow:0 3px 0 var(--line); color:var(--fg); min-width:0}
+.nchip .fr{font:800 1.1rem/1.1 var(--font-display)}
+.nchip .en{font:800 .95rem var(--font-body); color:var(--accent)}
+.nchip.on{border-color:var(--accent); background:var(--accent-soft)}
+.demo{display:flex; flex-wrap:wrap; gap:10px; margin:12px 0}
+.seg{display:inline-flex; flex-wrap:wrap; border:2px solid var(--line); border-radius:14px; overflow:hidden; background:var(--surface); margin:6px 0 4px}
+.seg button{border:0; background:none; padding:9px 16px; font:800 .9rem var(--font-body); color:var(--muted); cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent); color:var(--accent-ink)}
+.octrow{display:grid; grid-template-columns:8.5em 1fr 4.6em; gap:10px; align-items:center; width:100%; border:2px solid var(--line); background:var(--surface); border-radius:16px; padding:12px; margin-bottom:10px; cursor:pointer; color:var(--fg); box-shadow:0 3px 0 var(--line); text-align:left; font:700 .98rem var(--font-body)}
+.octrow.on{border-color:var(--accent); background:var(--accent-soft)}
+.o-bar{height:12px; background:var(--line); border-radius:99px; overflow:hidden}
+.o-bar i{display:block; height:100%; background:var(--accent); border-radius:99px}
+.o-hz{text-align:right; font-variant-numeric:tabular-nums}
+.score{font:800 4.5rem/1 var(--font-display); color:var(--accent); margin:.2em 0}
+
+/* Clavier */
+.kbwrap{margin:18px 0 6px}
+.kb{position:relative; display:flex; height:clamp(150px,42vw,210px); user-select:none; -webkit-user-select:none; touch-action:manipulation}
+.wk{flex:1; min-width:0; border:1.5px solid var(--kline); background:var(--kw); color:var(--kfg); border-radius:0 0 10px 10px; margin:0 1px; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; padding:0 0 10px; gap:2px; cursor:pointer; font:700 .85rem var(--font-body)}
+.wk .l1{font-weight:800; font-size:.95rem}
+.wk .l2{font-size:.78rem; opacity:.8}
+.bk{position:absolute; top:0; height:60%; background:var(--kb); color:var(--kbfg); border:0; border-radius:0 0 8px 8px; z-index:2; cursor:pointer; display:flex; align-items:flex-end; justify-content:center; padding:0 0 6px; font:700 .62rem var(--font-body); box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.wk.on{background:var(--press)}
+.bk.on{background:var(--accent); color:var(--accent-ink)}
+.wk.pick{background:var(--press); border-color:var(--accent); box-shadow:inset 0 0 0 2px var(--accent)}
+.bk.pick{background:var(--accent); color:var(--accent-ink)}
+.wk.good,.bk.good{background:var(--keygood); color:#fff; border-color:var(--keygood)}
+.wk.bad,.bk.bad{background:var(--keybad); color:#fff; border-color:var(--keybad)}
+.kbstatus{margin:8px 0 0; min-height:1.6em; font-weight:700; color:var(--muted)}
+
+/* Manche */
+.fbwrap{margin:18px 0 6px}
+.fretb{display:grid; gap:0; border-radius:12px; overflow:hidden; border:2px solid var(--line); background:var(--surface)}
+.frow{display:grid; grid-template-columns:2.6rem repeat(var(--n),minmax(0,1fr)); align-items:stretch}
+.sname{display:grid; place-items:center; font:800 .85rem var(--font-body); color:var(--muted); background:var(--tint)}
+.cell{height:40px; border:0; border-left:3px solid var(--line-deep); background-color:transparent; background-image:linear-gradient(var(--muted),var(--muted)); background-size:100% 2px; background-position:center; background-repeat:no-repeat; color:var(--fg); cursor:pointer; padding:0; font:800 .72rem var(--font-body); min-width:0}
+.cell.open{border-left:0; border-right:5px solid var(--fg)}
+.cell span{background:var(--surface); padding:1px 4px; border-radius:6px}
+.cell.on{background-color:var(--accent-soft)}
+.cell.pick{background-color:var(--accent); color:var(--accent-ink)}
+.cell.pick span{background:transparent}
+.cell.good{background-color:var(--keygood); color:#fff}
+.cell.bad{background-color:var(--keybad); color:#fff}
+.cell.good span,.cell.bad span{background:transparent}
+
+/* Exercices variés */
+.pool{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0}
+.pchip{border:2px solid var(--line); background:var(--surface); color:var(--fg); border-radius:14px; padding:10px 14px; font:800 1rem var(--font-body); cursor:pointer; box-shadow:0 3px 0 var(--line)}
+.pchip.good{border-color:var(--good); background:var(--good-soft); color:var(--good)}
+.pchip.bad{border-color:var(--bad); background:var(--bad-soft); color:var(--bad)}
+.tray{min-height:60px; border:2px dashed var(--line-deep); border-radius:16px; padding:8px; display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; align-items:center}
+.tray:empty::before{content:'Touche les éléments dans le bon ordre'; color:var(--muted); font-weight:700; padding:0 6px}
+.match{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px}
+.mcol{display:grid; gap:10px; align-content:start}
+.mbtn{position:relative; text-align:center; font:800 1rem var(--font-body); color:var(--fg); background:var(--surface); border:2px solid var(--line); border-radius:14px; padding:12px 30px 12px 10px; cursor:pointer; box-shadow:0 3px 0 var(--line); min-width:0; overflow-wrap:anywhere}
+.mbtn.sel{border-color:var(--accent); background:var(--accent-soft); box-shadow:0 3px 0 var(--accent)}
+.mbtn.good{border-color:var(--good); background:var(--good-soft); color:var(--good)}
+.mbtn.bad{border-color:var(--bad); background:var(--bad-soft); color:var(--bad)}
+.bd{position:absolute; right:8px; top:50%; transform:translateY(-50%); width:20px; height:20px; border-radius:50%; background:var(--accent); color:var(--accent-ink); font:800 .75rem/20px var(--font-body); font-style:normal; text-align:center}
+.wk.tgt,.bk.tgt{box-shadow:inset 0 0 0 3px var(--accent)}
+.bk.tgt{background:var(--accent)}
+.wk.tgt{background:var(--tgt)}
+.wk.given{background:var(--given)}
+.bk.given{background:var(--kb)}
+.wk.tgt .l1,.wk.given .l1{color:#1B1930}
+.bk.tgt{color:var(--accent-ink)}
+.wk.tgt.pick{background:var(--accent); box-shadow:inset 0 0 0 3px var(--accent-deep)}
+.wk.tgt.pick .l1{color:var(--accent-ink)}
+.bk.tgt.pick{background:var(--accent-deep); box-shadow:0 0 0 3px var(--accent)}
+.counter{font-weight:800; color:var(--muted); margin:8px 0 0}
+/* Suivi */
+.tiles{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:18px}
+.tile{border:2px solid var(--line); background:var(--surface); border-radius:18px; padding:12px 10px; text-align:center}
+.tile b{display:block; font:800 2rem/1 var(--font-display); color:var(--accent)}
+.tile span{font-size:.82rem; font-weight:700; color:var(--muted)}
+.mrow{margin:14px 0 0}
+.mtop{display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap}
+.mtop b{font-weight:800}
+.mlvl{font:800 .78rem var(--font-body); color:var(--muted)}
+.mbar{height:14px; border-radius:99px; background:var(--line); overflow:hidden; margin-top:6px}
+.mbar i{display:block; height:100%; background:var(--accent); border-radius:99px; transition:width .4s}
+.mbar i.ok{background:var(--good)}
+.msub{font-size:.82rem; color:var(--muted); margin-top:3px}
+.calnav{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px}
+.calnav strong{font:800 1.15rem var(--font-display); text-transform:capitalize}
+.cal{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px}
+.cal .wd{text-align:center; font:800 .72rem var(--font-body); color:var(--muted); padding:2px 0}
+.cd{aspect-ratio:1; border-radius:12px; border:2px solid var(--line); background:var(--surface); display:grid; place-items:center; font:700 .9rem var(--font-body); color:var(--fg); padding:0}
+.cd.empty{border:0; background:none}
+.cd.l1{background:var(--accent-soft); border-color:var(--accent-soft)}
+.cd.l2{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.cd.l3{background:var(--accent-deep); border-color:var(--accent-deep); color:#fff}
+.cd.today{outline:3px solid var(--fg); outline-offset:1px}
+.legend{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:12px; font-size:.82rem; color:var(--muted); font-weight:700}
+.legend i{display:inline-block; width:14px; height:14px; border-radius:5px; vertical-align:-2px; margin-right:4px; border:2px solid var(--line)}
+/* Rythme */
+.bpmrow{display:flex; align-items:center; justify-content:center; gap:18px; margin:6px 0 4px}
+.bpmbox{text-align:center; min-width:6.5rem}
+.bpmbox b{display:block; font:800 4rem/1 var(--font-display); color:var(--accent); font-variant-numeric:tabular-nums}
+.bpmbox span{font:800 .8rem var(--font-body); letter-spacing:.1em; color:var(--muted)}
+input[type=range]{width:100%; accent-color:var(--accent); height:32px; margin:8px 0}
+.dots{display:flex; gap:12px; justify-content:center; margin:18px 0 8px; flex-wrap:wrap}
+.dot{width:22px; height:22px; border-radius:50%; background:var(--line); transition:transform .08s,background .08s}
+.dot.on{background:var(--accent); transform:scale(1.35)}
+.dot.a{box-shadow:0 0 0 3px var(--line-deep)}
+.inst{margin:14px 0 6px; font:800 .78rem var(--font-body); letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+.sgrid{display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px}
+.rc{height:44px; border:2px solid var(--line); background:var(--surface); border-radius:12px; color:var(--muted); font:800 .78rem var(--font-body); cursor:pointer; padding:0; min-width:0}
+.rc.beat{border-color:var(--line-deep)}
+.rc.on{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.rc.ph{outline:3px solid var(--fg); outline-offset:1px}
+.rc.good{background:var(--good); border-color:var(--good); color:#fff}
+.rc.bad{background:var(--bad); border-color:var(--bad); color:#fff}
+.rc.miss{border-color:var(--bad); color:var(--bad)}
+.rmsg{margin:12px 0 0; font-weight:700; min-height:1.5em}
+.rmsg.good{color:var(--good)} .rmsg.bad{color:var(--bad)}
+/* Fiche */
+.sheet{position:fixed; inset:0; z-index:30; background:var(--bg); display:flex; flex-direction:column; padding-top:env(safe-area-inset-top,0px)}
+.sheet-head{display:flex; justify-content:space-between; align-items:center; gap:12px; border-bottom:2px solid var(--line); padding-top:8px; padding-bottom:8px}
+.sheet-head strong{font:800 1.15rem var(--font-display)}
+.sheet-body{flex:1; overflow-y:auto; padding-top:8px; padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+.doc{max-width:65ch; margin:0 auto}
+.doc h3{font:800 1.4rem/1.15 var(--font-display); margin:1.4em 0 .3em}
+.doc p{margin:.5em 0}
+.doc a{color:var(--accent); overflow-wrap:anywhere}
+.doc ol{padding-left:1.2em}
+.doc .note{background:var(--tint); border:2px solid var(--line); border-radius:14px; padding:10px 14px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important; animation:none!important}}
+</style>
+<style>html{color-scheme:light dark}body{margin:0}</style>
+</head>
+<body>
+
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect class="logo-bg" width="32" height="32" rx="9"/><path class="logo-st" d="M12 21V9l10-2v12"/><circle class="logo-fg" cx="10" cy="22" r="3"/><circle class="logo-fg" cx="20" cy="20" r="3"/></svg>
+      <span>Atelier Musique</span>
+    </div>
+    <span class="tag">Maquette</span>
+  </header>
+  <nav class="tabs" role="tablist" aria-label="Sujets" id="tabs"></nav>
+  <main id="panels"></main>
+</div>
+
+<div class="lesson" id="lesson" hidden role="dialog" aria-modal="true" aria-label="Leçon">
+  <div class="lhead gut">
+    <button type="button" class="icon" id="lclose" aria-label="Fermer"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/></svg></button>
+    <div class="track" id="track" role="progressbar" aria-label="Progression" aria-valuemin="0" aria-valuenow="0"><div class="fill" id="fill"></div></div>
+    <span class="count" id="count">0/0</span>
+  </div>
+  <div class="lbody"><div class="lwrap gut" id="stage"></div></div>
+  <div class="lfoot" id="lfoot"><div class="lfoot-in gut"><p class="fb" id="fb" aria-live="polite"></p><button type="button" class="btn wide" id="next">Continuer</button></div></div>
+</div>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-label="Fiche de théorie">
+  <div class="sheet-head gut"><strong>Fiche de théorie · Les bases</strong><button type="button" class="icon" id="sclose" aria-label="Fermer la fiche"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/></svg></button></div>
+  <div class="sheet-body gut"><div class="doc" id="doc"></div></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(s){return document.querySelector(s)};
+function h(html){var t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstElementChild}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+
+/* ---------- Notes ---------- */
+var FRS=['Do','Do♯','Ré','Ré♯','Mi','Fa','Fa♯','Sol','Sol♯','La','La♯','Si'];
+var FRF=['Do','Ré♭','Ré','Mi♭','Mi','Fa','Sol♭','Sol','La♭','La','Si♭','Si'];
+var ENS=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+var ENF=['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'];
+var BLACK=[1,3,6,8,10], WHITE=[0,2,4,5,7,9,11];
+function oct(m){return Math.floor(m/12)-1}
+function freq(m){return 440*Math.pow(2,(m-69)/12)}
+var PLAY='<svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3.5v13l11-6.5z" fill="currentColor"/></svg>';
+var STD=[40,45,50,55,59,64];
+var HSD=STD.map(function(m){return m-1});
+var DROPD=[38,45,50,55,59,64];
+
+/* ---------- Son ---------- */
+var ctx=null, timers=[];
+function ac(){
+  if(!ctx){var A=window.AudioContext||window.webkitAudioContext; if(!A) return null; ctx=new A();}
+  if(ctx.state==='suspended') ctx.resume();
+  return ctx;
+}
+function tone(m,delay,dur){
+  try{
+    var c=ac(); if(!c) return;
+    delay=delay||0; dur=dur||0.9;
+    var t=c.currentTime+delay+0.01, g=c.createGain(), o=c.createOscillator();
+    o.type='triangle'; o.frequency.value=freq(m);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(0.3,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+dur+0.05);
+  }catch(e){}
+}
+function later(fn,ms){timers.push(setTimeout(fn,ms))}
+function clearTimers(){while(timers.length) clearTimeout(timers.pop())}
+function seq(notes,gap,onNote){
+  notes.forEach(function(m,i){ tone(m,i*gap/1000,0.8); later(function(){onNote&&onNote(m,i)},i*gap); });
+}
+
+/* ---------- Progression (confort par visiteur) ---------- */
+var KEY='atelier-musique:v2';
+var S={done:{},best:{}};
+try{var raw=JSON.parse(localStorage.getItem(KEY)||'null'); if(raw&&raw.done&&raw.best) S=raw}catch(e){}
+S.stats=S.stats||{}; S.days=S.days||{};
+function saveS(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function dkey(d){function p(n){return (n<10?'0':'')+n} return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())}
+function touchDay(){var k=dkey(new Date()); S.days[k]=(S.days[k]||0)+1; saveS()}
+function record(id,ok){var st=S.stats[id]||(S.stats[id]={r:[],n:0}); st.r.push(ok?1:0); if(st.r.length>10) st.r.shift(); st.n++; saveS()}
+
+/* ---------- Clavier ---------- */
+function keyboard(o){
+  o=Object.assign({lo:60,hi:72,mode:'both',black:true,offset:0,onPress:null,blank:false},o||{});
+  var wrap=h('<div class="kbwrap"></div>');
+  var kb=h('<div class="kb" role="group" aria-label="Clavier de piano"></div>');
+  var status=h('<p class="kbstatus" aria-live="polite">Touche une note pour l’entendre.</p>');
+  wrap.append(kb,status);
+  var totalW=0,m,wc=0,keys={};
+  for(m=o.lo;m<=o.hi;m++){ if(BLACK.indexOf(m%12)<0) totalW++; }
+  var unit=100/totalW;
+  function setStatus(n){
+    var pc=n%12, isB=BLACK.indexOf(pc)>=0, num=o.mode==='oct'?String(oct(n)+o.offset):'';
+    status.textContent=isB ? FRS[pc]+' / '+FRF[pc]+'  ·  '+ENS[pc]+num+' / '+ENF[pc]+num : FRS[pc]+'  ·  '+ENS[pc]+num;
+  }
+  function flash(n,ms){var k=keys[n]; if(!k) return; k.classList.add('on'); later(function(){k.classList.remove('on')},ms||420)}
+  function mark(n,cls){if(keys[n]) keys[n].classList.add(cls)}
+  function unmark(n,cls){if(keys[n]) keys[n].classList.remove(cls)}
+  function relabel(off){
+    o.offset=off;
+    Object.keys(keys).forEach(function(k){
+      var l=keys[k].querySelector('.l1'); if(l) l.textContent=ENS[k%12]+(oct(+k)+off);
+    });
+  }
+  function build(n){
+    var pc=n%12, isB=BLACK.indexOf(pc)>=0;
+    var b=document.createElement('button'); b.type='button'; b.className=isB?'bk':'wk'; b.dataset.m=n;
+    b.setAttribute('aria-label', o.blank ? 'Touche' : (isB ? FRS[pc]+' ou '+FRF[pc] : FRS[pc]));
+    if(isB){
+      b.style.left=((wc-0.3)*unit)+'%'; b.style.width=(0.6*unit)+'%';
+      if(!o.blank && o.black && o.mode==='both') b.innerHTML='<span>'+FRS[pc]+'</span>';
+    }else{
+      wc++;
+      if(o.blank){} else if(o.mode==='both') b.innerHTML='<span class="l1">'+FRS[pc]+'</span><span class="l2">'+ENS[pc]+'</span>';
+      else b.innerHTML='<span class="l1">'+ENS[pc]+(oct(n)+o.offset)+'</span>';
+    }
+    b.addEventListener('click',function(){ tone(n); flash(n,260); if(!o.blank) setStatus(n); if(o.onPress) o.onPress(n); });
+    keys[n]=b; kb.append(b);
+  }
+  for(m=o.lo;m<=o.hi;m++) build(m);
+  return {el:wrap,keys:keys,flash:flash,mark:mark,unmark:unmark,relabel:relabel};
+}
+
+/* ---------- Manche de guitare (cordes : 0 = grave, 5 = aiguë) ---------- */
+function fretboard(o){
+  o=Object.assign({tuning:STD,frets:8,labels:false,flats:false,onPress:null,quiet:false},o||{});
+  var names=o.flats?FRF:FRS;
+  var wrap=h('<div class="fbwrap"></div>');
+  var grid=h('<div class="fretb" role="group" aria-label="Manche de guitare" style="--n:'+(o.frets+1)+'"></div>');
+  var status=h('<p class="kbstatus" aria-live="polite">Touche une case pour l’entendre.</p>');
+  wrap.append(grid,status);
+  var cells={};
+  function build(s,f,row){
+    var m=o.tuning[s]+f;
+    var b=h('<button type="button" class="cell'+(f===0?' open':'')+'" aria-label="Corde '+(6-s)+', case '+f+'">'+(o.labels?'<span>'+names[m%12]+'</span>':'')+'</button>');
+    b.addEventListener('click',function(){
+      tone(m); flash(s,f,260);
+      if(!o.quiet) status.textContent='Corde de '+names[o.tuning[s]%12]+', case '+f+'  ·  '+names[m%12];
+      if(o.onPress) o.onPress(s,f);
+    });
+    cells[s+'-'+f]=b; row.append(b);
+  }
+  for(var s=5;s>=0;s--){
+    var row=h('<div class="frow"></div>');
+    row.append(h('<span class="sname">'+names[o.tuning[s]%12]+'</span>'));
+    for(var f=0;f<=o.frets;f++) build(s,f,row);
+    grid.append(row);
+  }
+  function flash(s,f,ms){var c=cells[s+'-'+f]; if(!c) return; c.classList.add('on'); later(function(){c.classList.remove('on')},ms||420)}
+  function mark(s,f,cls){var c=cells[s+'-'+f]; if(c) c.classList.add(cls)}
+  function unmark(s,f,cls){var c=cells[s+'-'+f]; if(c) c.classList.remove(cls)}
+  return {el:wrap,flash:flash,mark:mark,unmark:unmark};
+}
+
+/* ---------- Fabriques d’étapes ---------- */
+var F_NOMS={id:'f-noms',label:'Les sept noms de notes'};
+var F_CLAV={id:'f-clavier',label:'Dièses, bémols et clavier'};
+var F_ALTER={id:'f-alter',label:'Dièse, bémol, bécarre'};
+var F_TONS={id:'f-tons',label:'Ton et demi-ton'};
+var F_MANCHE={id:'f-manche',label:'Le manche et les accordages'};
+var F_OCT={id:'f-octave',label:'Octaves et fréquences'};
+var F_NUM={id:'f-nommer',label:'Numéroter les octaves'};
+
+function learn(fiche,render){return {graded:false,fiche:fiche,render:render}}
+function quizStep(c){
+  return {graded:true,fiche:c.fiche,render:function(root,api){
+    root.innerHTML='<h2>'+(c.title||'Question')+'</h2><p class="lead">'+c.q+'</p>';
+    if(c.extra) c.extra(root);
+    var box=h('<div class="opts"></div>'); root.append(box);
+    var locked=false, btns=[];
+    shuffle(c.options.map(function(t,i){return {t:t,ok:i===c.answer}})).forEach(function(it){
+      var b=h('<button type="button" class="opt" aria-pressed="false">'+it.t+'</button>');
+      btns.push({b:b,ok:it.ok});
+      b.addEventListener('click',function(){
+        if(locked) return;
+        btns.forEach(function(x){x.b.classList.remove('sel'); x.b.setAttribute('aria-pressed','false')});
+        b.classList.add('sel'); b.setAttribute('aria-pressed','true');
+        api.select(function(){
+          locked=true; b.classList.remove('sel');
+          b.classList.add(it.ok?'good':'bad');
+          if(!it.ok) btns.forEach(function(x){if(x.ok) x.b.classList.add('good')});
+          api.done(it.ok,c.explain);
+        });
+      });
+      box.append(b);
+    });
+  }};
+}
+function Q(title,q,options,answer,explain,fiche){return quizStep({title:title,q:q,options:options,answer:answer,explain:explain,fiche:fiche})}
+function K(title,q,accept,explain,fiche,black){
+  return {graded:true,fiche:fiche,render:function(root,api){
+    root.innerHTML='<h2>'+title+'</h2><p class="lead">'+q+'</p>';
+    var locked=false, picked=null, k;
+    k=keyboard({mode:'both',black:black!==false,onPress:function(n){
+      if(locked) return;
+      if(picked!==null) k.unmark(picked,'pick');
+      picked=n; k.mark(n,'pick');
+      api.select(function(){
+        locked=true; k.unmark(n,'pick');
+        var ok=accept.indexOf(n)>=0;
+        k.mark(n,ok?'good':'bad'); if(!ok) k.mark(accept[0],'good');
+        api.done(ok,explain);
+      });
+    }});
+    root.append(k.el);
+  }};
+}
+function FR(title,q,accept,explain,fiche,tuning,flats){
+  return {graded:true,fiche:fiche,render:function(root,api){
+    root.innerHTML='<h2>'+title+'</h2><p class="lead">'+q+'</p>';
+    var locked=false, picked=null, fbd;
+    fbd=fretboard({tuning:tuning||STD,flats:!!flats,frets:8,onPress:function(s,f){
+      if(locked) return;
+      if(picked) fbd.unmark(picked.s,picked.f,'pick');
+      picked={s:s,f:f}; fbd.mark(s,f,'pick');
+      api.select(function(){
+        locked=true; fbd.unmark(s,f,'pick');
+        var ok=(s===accept.s&&f===accept.f);
+        fbd.mark(s,f,ok?'good':'bad'); if(!ok) fbd.mark(accept.s,accept.f,'good');
+        api.done(ok,explain);
+      });
+    }});
+    root.append(fbd.el);
+  }};
+}
+
+function playBtn(root,notes,gap,label){
+  var row=h('<div class="demo"></div>');
+  var b=h('<button type="button" class="btn ghost">'+PLAY+' '+(label||'Écouter')+'</button>');
+  b.addEventListener('click',function(){seq(notes,gap||800)});
+  row.append(b); root.append(row);
+}
+function EAR(title,q,notes,options,answer,explain,fiche,gap){
+  return quizStep({title:title,q:q,options:options,answer:answer,explain:explain,fiche:fiche,
+    extra:function(root){playBtn(root,notes,gap||800,'Écouter les deux notes')}});
+}
+function FRN(title,q,s,f,options,answer,explain,fiche,tuning,flats){
+  return quizStep({title:title,q:q,options:options,answer:answer,explain:explain,fiche:fiche,
+    extra:function(root){var fbd=fretboard({tuning:tuning||STD,flats:!!flats,frets:8,quiet:true}); fbd.mark(s,f,'pick'); root.append(fbd.el)}});
+}
+/* Clavier vide : place les noms sur les touches repérées */
+function NAME(title,q,targets,pool,given,fiche){
+  return {graded:true,fiche:fiche,render:function(root,api){
+    root.innerHTML='<h2>'+title+'</h2><p class="lead">'+q+'</p>';
+    var locked=false, active=null, got={}, k, chips=h('<div class="pool"></div>');
+    function put(m,name,cls){var key=k.keys[m]; key.innerHTML=BLACK.indexOf(m%12)>=0?'<span>'+name+'</span>':'<span class="l1">'+name+'</span>'; if(cls) key.classList.add(cls)}
+    function firstFree(){for(var i=0;i<targets.length;i++) if(got[targets[i].m]===undefined) return targets[i].m; return null}
+    function setActive(m){if(active!==null) k.unmark(active,'pick'); active=m; if(m!==null) k.mark(m,'pick')}
+    k=keyboard({mode:'both',blank:true,onPress:function(n){
+      if(locked) return;
+      if(targets.some(function(t){return t.m===n})) setActive(n);
+    }});
+    targets.forEach(function(t){k.mark(t.m,'tgt')});
+    Object.keys(given||{}).forEach(function(m){put(+m,given[m],'given')});
+    pool.forEach(function(name){
+      var b=h('<button type="button" class="pchip">'+name+'</button>');
+      b.addEventListener('click',function(){
+        if(locked) return;
+        var m=active!==null?active:firstFree(); if(m===null) return;
+        got[m]=name; put(m,name); setActive(null);
+        var f=firstFree();
+        if(f!==null){setActive(f); api.unselect()}
+        else api.select(validate);
+      });
+      chips.append(b);
+    });
+    function validate(){
+      locked=true; setActive(null);
+      var ok=true;
+      targets.forEach(function(t){
+        var good=t.ok.indexOf(got[t.m])>=0; k.unmark(t.m,'tgt'); k.mark(t.m,good?'good':'bad');
+        if(!good){ok=false; put(t.m,t.ok[0])}
+      });
+      api.done(ok,'Réponses : '+targets.map(function(t){return t.ok[0]}).join(', ')+'.');
+    }
+    root.append(k.el,chips);
+    k.el.querySelector('.kbstatus').textContent='Choisis le nom de la touche entourée.';
+    setActive(firstFree());
+  }};
+}
+/* Associer : relie chaque élément de gauche à celui de droite */
+function MATCH(title,q,pairs,fiche){
+  return {graded:true,fiche:fiche,render:function(root,api){
+    root.innerHTML='<h2>'+title+'</h2><p class="lead">'+q+'</p>';
+    var n=pairs.length, order=shuffle(pairs.map(function(p,i){return i})), link={}, sel=null, locked=false, Lb=[], Rb=[];
+    var grid=h('<div class="match"></div>'), cl=h('<div class="mcol"></div>'), cr=h('<div class="mcol"></div>');
+    grid.append(cl,cr); root.append(grid);
+    function rightOf(r){for(var i in link) if(link[i]===r) return +i; return -1}
+    function paint(){
+      pairs.forEach(function(p,i){Lb[i].innerHTML=p[0]+(link[i]!==undefined?'<i class="bd">'+(i+1)+'</i>':''); Lb[i].classList.toggle('sel',sel===i)});
+      order.forEach(function(r,j){var li=rightOf(r); Rb[j].innerHTML=pairs[r][1]+(li>=0?'<i class="bd">'+(li+1)+'</i>':'')});
+    }
+    pairs.forEach(function(p,i){
+      var b=h('<button type="button" class="mbtn"></button>'); Lb[i]=b; cl.append(b);
+      b.addEventListener('click',function(){
+        if(locked) return;
+        if(link[i]!==undefined){delete link[i]; api.unselect()}
+        sel=(sel===i)?null:i; paint();
+      });
+    });
+    order.forEach(function(r,j){
+      var b=h('<button type="button" class="mbtn"></button>'); Rb[j]=b; cr.append(b);
+      b.addEventListener('click',function(){
+        if(locked||sel===null) return;
+        var old=rightOf(r); if(old>=0) delete link[old];
+        link[sel]=r; sel=null; paint();
+        if(Object.keys(link).length===n) api.select(check); else api.unselect();
+      });
+    });
+    function check(){
+      locked=true; var ok=true;
+      pairs.forEach(function(p,i){
+        var good=link[i]===i; if(!good) ok=false;
+        Lb[i].classList.add(good?'good':'bad');
+        Rb[order.indexOf(link[i])].classList.add(good?'good':'bad');
+      });
+      api.done(ok,pairs.map(function(p){return p[0]+' = '+p[1]}).join(' ; ')+'.');
+    }
+    paint();
+  }};
+}
+/* Remettre dans l'ordre */
+function ORDER(title,q,items,explain,fiche){
+  return {graded:true,fiche:fiche,render:function(root,api){
+    root.innerHTML='<h2>'+title+'</h2><p class="lead">'+q+'</p>';
+    var pool, tray=[], locked=false, trayEl=h('<div class="tray"></div>'), poolEl=h('<div class="pool"></div>');
+    do{pool=shuffle(items.map(function(t,i){return i}))}while(items.length>1&&pool.every(function(v,i){return v===i}));
+    function paint(){
+      trayEl.innerHTML=''; poolEl.innerHTML='';
+      tray.forEach(function(idx,pos){
+        var b=h('<button type="button" class="pchip">'+items[idx]+'</button>');
+        b.addEventListener('click',function(){if(locked) return; tray.splice(pos,1); paint(); api.unselect()});
+        trayEl.append(b);
+      });
+      pool.forEach(function(idx){
+        if(tray.indexOf(idx)>=0) return;
+        var b=h('<button type="button" class="pchip">'+items[idx]+'</button>');
+        b.addEventListener('click',function(){if(locked) return; tray.push(idx); paint(); if(tray.length===items.length) api.select(check)});
+        poolEl.append(b);
+      });
+    }
+    function check(){
+      locked=true; var ok=true;
+      trayEl.querySelectorAll('.pchip').forEach(function(b,i){var good=tray[i]===i; if(!good) ok=false; b.classList.add(good?'good':'bad')});
+      api.done(ok,explain+' Ordre : '+items.join(' → ')+'.');
+    }
+    root.append(trayEl,poolEl); paint();
+  }};
+}
+/* Escalier : clique les touches dans l'ordre demandé */
+function STAIRS(title,q,seqNotes,explain,fiche,black){
+  return {graded:true,fiche:fiche,render:function(root,api){
+    root.innerHTML='<h2>'+title+'</h2><p class="lead">'+q+'</p>';
+    var picks=[], locked=false, k, cnt=h('<p class="counter"></p>'), reset=h('<button type="button" class="btn ghost small">Effacer</button>');
+    function upd(){
+      cnt.textContent='Touches jouées : '+picks.length+'/'+seqNotes.length;
+      if(picks.length===seqNotes.length) api.select(check); else api.unselect();
+    }
+    k=keyboard({mode:'both',black:black!==false,onPress:function(n){
+      if(locked||picks.length>=seqNotes.length) return;
+      picks.push(n); k.mark(n,'pick'); upd();
+    }});
+    reset.addEventListener('click',function(){
+      if(locked) return;
+      picks.forEach(function(m){k.unmark(m,'pick')}); picks=[]; upd();
+    });
+    function check(){
+      locked=true; var ok=true;
+      picks.forEach(function(m,i){var good=m===seqNotes[i]; if(!good) ok=false; k.unmark(m,'pick'); k.mark(m,good?'good':'bad')});
+      if(!ok) seqNotes.forEach(function(m){if(picks.indexOf(m)<0) k.mark(m,'good')});
+      api.done(ok,explain);
+    }
+    var row=h('<div class="row"></div>'); row.append(reset);
+    root.append(k.el,cnt,row); upd();
+  }};
+}
+
+/* ---------- Écrans de cours ---------- */
+var NOTES7=[60,62,64,65,67,69,71];
+function demoRow(root,k,list,gap){
+  var row=h('<div class="demo"></div>');
+  list.forEach(function(d){
+    var b=h('<button type="button" class="btn ghost small">'+PLAY+' '+d[0]+'</button>');
+    b.addEventListener('click',function(){ seq(d[1],gap||650,function(m){k.flash(m,600)}) });
+    row.append(b);
+  });
+  root.append(row);
+}
+var L_NOMS=learn(F_NOMS,function(root){
+  root.innerHTML='<h2>Sept noms, deux alphabets</h2>'+
+    '<p class="lead">La musique occidentale utilise <span class="hl">sept noms de notes</span>. En français : Do, Ré, Mi, Fa, Sol, La, Si. Dans le monde anglophone, on utilise des <span class="hl">lettres</span>. C’est la même chose, écrite autrement.</p>'+
+    '<div class="notes" id="notes"></div>'+
+    '<button class="btn ghost" id="seq" type="button">'+PLAY+' Écouter les 7 notes</button>'+
+    '<p class="tip">Piège classique : la lettre A est le La, pas le Do. Le Do s’écrit C, et la suite des lettres commence donc par C D E F G A B.</p>';
+  var box=root.querySelector('#notes'), chips={};
+  function lit(m){chips[m].classList.add('on'); later(function(){chips[m].classList.remove('on')},420)}
+  NOTES7.forEach(function(m){
+    var pc=m%12, c=h('<button type="button" class="nchip" aria-label="'+FRS[pc]+', '+ENS[pc]+'"><span class="fr">'+FRS[pc]+'</span><span class="en">'+ENS[pc]+'</span></button>');
+    c.addEventListener('click',function(){tone(m); lit(m)});
+    chips[m]=c; box.append(c);
+  });
+  root.querySelector('#seq').addEventListener('click',function(){ seq(NOTES7,520,lit) });
+});
+var L_CLAV=learn(F_CLAV,function(root){
+  root.innerHTML='<h2>Le clavier : 12 notes qui se répètent</h2>'+
+    '<p class="lead">Sur un piano, les <span class="hl">touches blanches</span> portent les sept noms que tu viens de voir. Les <span class="hl">touches noires</span> sont les notes intermédiaires : il y en a cinq.</p>';
+  var k=keyboard({mode:'both'}); root.append(k.el);
+  root.insertAdjacentHTML('beforeend','<p>Une touche noire prend le nom de sa voisine blanche : <b>dièse (♯)</b> quand on part de la touche blanche à sa gauche, <b>bémol (♭)</b> quand on part de celle à sa droite. La même touche a donc deux noms : Do♯ et Ré♭ sont une seule touche.</p><p>Au total, 7 + 5 = 12 notes, puis tout recommence au Do suivant.</p>');
+});
+var L_ALT1=learn(F_ALTER,function(root){
+  root.innerHTML='<h2>Dièse, bémol, bécarre</h2>'+
+    '<p class="lead">Trois signes modifient une note. Le <span class="hl">dièse (♯)</span> la monte d’un demi-ton. Le <span class="hl">bémol (♭)</span> la descend d’un demi-ton. Le <span class="hl">bécarre (♮)</span> annule une altération.</p>';
+  var k=keyboard({mode:'both'}); root.append(k.el);
+  demoRow(root,k,[['Do → Do♯ (dièse)',[60,61]],['Ré → Ré♭ (bémol)',[62,61]]]);
+  root.insertAdjacentHTML('beforeend','<p class="tip">Do♯ et Ré♭ sonnent pareil : on part de Do vers le haut, ou de Ré vers le bas, et on arrive sur la même touche.</p>');
+});
+var L_ALT2=learn(F_ALTER,function(root){
+  root.innerHTML='<h2>Même hauteur, deux noms</h2>'+
+    '<p class="lead">Deux notes qui sonnent pareil au piano mais s’écrivent différemment sont dites <span class="hl">enharmoniques</span>. Ça marche aussi avec des touches blanches : <b>Mi♯ = Fa</b>, <b>Si♯ = Do</b>, <b>Fa♭ = Mi</b> et <b>Do♭ = Si</b>.</p>';
+  var k=keyboard({mode:'both'}); root.append(k.el);
+  demoRow(root,k,[['Mi♯ = Fa',[64,65]],['Si♯ = Do',[71,72]]],800);
+  root.insertAdjacentHTML('beforeend','<p>La raison est simple : il n’y a pas de touche noire entre Mi et Fa, ni entre Si et Do. Monter Mi d’un demi-ton amène donc directement sur Fa.</p>');
+});
+var L_DEMI=learn(F_TONS,function(root){
+  root.innerHTML='<h2>Le demi-ton</h2>'+
+    '<p class="lead">Le <span class="hl">demi-ton</span> est la plus petite distance entre deux notes sur un piano : deux touches voisines, noires ou blanches.</p>';
+  var k=keyboard({mode:'both'}); root.append(k.el);
+  demoRow(root,k,[['Mi → Fa',[64,65]],['Do → Do♯',[60,61]],['Si → Do',[71,72]]]);
+  root.insertAdjacentHTML('beforeend','<p class="tip">Entre Mi et Fa, comme entre Si et Do, il n’y a pas de touche noire. Ces deux paires de touches blanches voisines sont séparées d’un seul demi-ton.</p>');
+});
+var L_TON=learn(F_TONS,function(root){
+  root.innerHTML='<h2>Le ton</h2>'+
+    '<p class="lead">Un <span class="hl">ton</span> vaut <span class="hl">deux demi-tons</span>. De Do à Ré, on passe par Do♯ : deux demi-tons, donc un ton.</p>';
+  var k=keyboard({mode:'both'}); root.append(k.el);
+  demoRow(root,k,[['Do → Ré',[60,62]],['Mi → Fa♯',[64,66]],['Sol → La',[67,69]]]);
+  root.insertAdjacentHTML('beforeend','<p class="tip">Mi → Fa♯ est un ton, mais Mi → Fa n’est qu’un demi-ton : tout dépend des touches noires qui se trouvent entre les deux.</p>');
+});
+var L_MANCHE=learn(F_MANCHE,function(root){
+  root.innerHTML='<h2>Une case, un demi-ton</h2>'+
+    '<p class="lead">Sur une guitare, passer d’une case à la suivante, c’est monter d’un <span class="hl">demi-ton</span>. La corde à vide (case 0) donne la note de la corde, et chaque case ajoute un demi-ton.</p>';
+  var fbd=fretboard({labels:true,frets:8}); root.append(fbd.el);
+  var row=h('<div class="demo"></div>');
+  var b=h('<button type="button" class="btn ghost small">'+PLAY+' Corde de Mi grave, cases 0 à 5</button>');
+  b.addEventListener('click',function(){
+    seq([40,41,42,43,44,45],550,function(m,i){fbd.flash(0,i,500)});
+  });
+  row.append(b); root.append(row);
+  root.insertAdjacentHTML('beforeend','<p class="tip">Corde de Mi grave : Mi (case 0), Fa (1), Fa♯ (2), Sol (3). Comme sur le clavier, il n’y a qu’un demi-ton entre Mi et Fa.</p>');
+});
+var L_OCT=learn(F_OCT,function(root){
+  root.innerHTML='<h2>L’octave : la fréquence double</h2>'+
+    '<p class="lead">Quand on monte d’une <span class="hl">octave</span>, on retrouve la même note, en plus aigu. Sa fréquence est exactement <span class="hl">multipliée par deux</span>. Le La de référence, qui sert à accorder les instruments, vibre à 440 Hz.</p>';
+  var box=h('<div></div>'), rows={};
+  function lit(m){rows[m].classList.add('on'); later(function(){rows[m].classList.remove('on')},900)}
+  [[57,'La grave · A3','25%'],[69,'La · A4','50%'],[81,'La aigu · A5','100%']].forEach(function(r){
+    var b=h('<button type="button" class="octrow"><span>'+r[1]+'</span><span class="o-bar"><i style="width:'+r[2]+'"></i></span><span class="o-hz">'+Math.round(freq(r[0]))+' Hz</span></button>');
+    b.addEventListener('click',function(){tone(r[0],0,1.2); lit(r[0])});
+    rows[r[0]]=b; box.append(b);
+  });
+  root.append(box);
+  var all=h('<button type="button" class="btn ghost">'+PLAY+' Écouter les trois</button>');
+  all.addEventListener('click',function(){ seq([57,69,81],900,lit) });
+  root.append(all);
+  root.insertAdjacentHTML('beforeend','<p class="tip">Une octave contient 12 demi-tons. De La à La, tu comptes 12 touches (blanches et noires) avant de retomber sur le même nom.</p>');
+});
+var L_LA=learn(F_OCT,function(root){
+  root.innerHTML='<h2>Le La de référence</h2>'+
+    '<p class="lead">Pour que tous les instruments jouent ensemble, on s’accorde sur un La : le <span class="hl">La4 à 440 Hz</span>. L’American Standards Association l’a recommandé en 1936, puis l’ISO l’a normalisé (ISO 16).</p>';
+  var box=h('<div></div>'), rows={};
+  function lit(m){rows[m].classList.add('on'); later(function(){rows[m].classList.remove('on')},900)}
+  [[45,'La2 · corde de La','25%'],[69,'La4 · référence','100%']].forEach(function(r){
+    var b=h('<button type="button" class="octrow"><span>'+r[1]+'</span><span class="o-bar"><i style="width:'+r[2]+'"></i></span><span class="o-hz">'+Math.round(freq(r[0]))+' Hz</span></button>');
+    b.addEventListener('click',function(){tone(r[0],0,1.2); lit(r[0])});
+    rows[r[0]]=b; box.append(b);
+  });
+  root.append(box);
+  root.insertAdjacentHTML('beforeend','<p>La corde de La d’une guitare sonne un La2, deux octaves sous le La de référence : 440 ÷ 2 ÷ 2 = 110 Hz.</p><p class="tip">En Europe continentale, on accorde souvent le La entre 440 et 444 Hz. Chaque demi-ton multiplie la fréquence par la racine douzième de 2, soit environ 1,0595 : après 12 demi-tons, on a bien doublé.</p>');
+});
+var L_NUM=learn(F_NUM,function(root){
+  root.innerHTML='<h2>Le Do central et les numéros d’octave</h2>'+
+    '<p class="lead">Pour distinguer un Do grave d’un Do aigu, on ajoute un <span class="hl">numéro d’octave</span>. Il change à chaque <b>Do</b>, pas à chaque La. Le Do central du piano s’écrit <span class="hl">C4</span> : c’est la note MIDI 60, d’environ 261,63 Hz.</p>';
+  var k=keyboard({mode:'oct',offset:0}); root.append(k.el);
+  root.insertAdjacentHTML('beforeend','<p class="tip">Le Si juste sous C4 est donc B3, pas B4. La note la plus grave d’un piano standard est La0 (27,5 Hz), et la corde de Mi grave d’une guitare en accordage standard sonne un Mi2 (E2).</p>');
+});
+var L_FL=learn(F_NUM,function(root){
+  root.innerHTML='<h2>FL Studio compte autrement</h2>'+
+    '<p class="lead">Il n’existe pas de convention unique pour numéroter les octaves. FL Studio numérote de 0 à 10 et affiche le Do central <span class="hl">C5</span>, alors que la notation standard l’appelle C4.</p>';
+  var k=keyboard({mode:'oct',offset:0}); root.append(k.el);
+  var seg=h('<div class="seg" role="group" aria-label="Convention de numérotation"><button type="button" aria-pressed="true" data-o="0">Notation standard</button><button type="button" aria-pressed="false" data-o="1">FL Studio</button></div>');
+  var txt=h('<p></p>');
+  function set(off){
+    k.relabel(off);
+    seg.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-pressed',String(+b.dataset.o===off))});
+    txt.innerHTML= off===0 ? 'Notation scientifique standard : le Do central s’appelle <b>C4</b>.' : 'Dans le piano roll de FL Studio, <b>la même note</b> s’appelle <b>C5</b>. Le son est identique : seul le nom change.';
+  }
+  seg.addEventListener('click',function(e){var b=e.target.closest('button'); if(b) set(+b.dataset.o)});
+  root.append(seg,txt);
+  set(0);
+  root.insertAdjacentHTML('beforeend','<p class="tip">Certains logiciels (Yamaha, GarageBand) appellent le Do central C3. Quand un plugin ou une banque de sons indique une note, vérifie dans quelle convention elle est écrite.</p>');
+});
+var L_TUN=learn(F_MANCHE,function(root){
+  root.innerHTML='<h2>Les accordages de ta guitare</h2>'+
+    '<p class="lead">Les trois accordages que tu utilises ne changent que les notes des cordes à vide. Le principe d’une case = un demi-ton reste le même.</p>';
+  var holder=h('<div></div>'), seg=h('<div class="seg" role="group" aria-label="Accordage"></div>'), txt=h('<p class="tip"></p>'), fbd=null;
+  var TUN=[
+    {id:'std',label:'Standard',t:STD,flats:false,txt:'Standard : Mi La Ré Sol Si Mi (E2 A2 D3 G3 B3 E4).'},
+    {id:'hsd',label:'Half-step down',t:HSD,flats:true,txt:'Half-step down : chaque corde descend d’un demi-ton, soit Mi♭ La♭ Ré♭ Sol♭ Si♭ Mi♭.'},
+    {id:'dd',label:'Drop D',t:DROPD,flats:false,txt:'Drop D : seule la corde grave descend d’un ton, en Ré (D2). Les cinq autres cordes ne changent pas.'}
+  ];
+  function set(i){
+    var d=TUN[i]; holder.innerHTML=''; fbd=fretboard({tuning:d.t,flats:d.flats,frets:8}); holder.append(fbd.el);
+    seg.querySelectorAll('button').forEach(function(b,j){b.setAttribute('aria-pressed',String(j===i))});
+    txt.textContent=d.txt;
+    seg.dataset.cur=i;
+  }
+  TUN.forEach(function(d,i){var b=h('<button type="button" aria-pressed="false">'+d.label+'</button>'); b.addEventListener('click',function(){set(i)}); seg.append(b)});
+  var play=h('<button type="button" class="btn ghost small">'+PLAY+' Écouter les cordes à vide</button>');
+  play.addEventListener('click',function(){var d=TUN[+seg.dataset.cur||0]; seq(d.t,450,function(m,i){fbd.flash(i,0,400)})});
+  root.append(seg,holder,h('<div class="demo"></div>'));
+  root.lastChild.append(play);
+  root.append(txt);
+  set(0);
+});
+
+/* ---------- Leçons ---------- */
+var LESSONS={
+  l11:{title:'Sept noms, deux alphabets',min:4,steps:[
+    L_NOMS,
+    MATCH('Associe les notes','Relie chaque note à sa lettre : touche une note, puis sa lettre.',[['Sol','G'],['Si','B'],['La','A'],['Ré','D']],F_NOMS),
+    NAME('Clavier vide','Le clavier n’a plus d’étiquettes. Place le bon nom sur chaque touche repérée, en français. Le Do est déjà indiqué.',[{m:64,ok:['Mi']},{m:67,ok:['Sol']},{m:71,ok:['Si']}],['Do','Ré','Mi','Fa','Sol','La','Si'],{60:'Do'},F_NOMS),
+    ORDER('Remets en ordre','Range les lettres dans l’ordre des notes, de Do à Si.',['C','D','E','F','G','A','B'],'Do Ré Mi Fa Sol La Si correspondent à C D E F G A B.',F_NOMS)
+  ]},
+  l12:{title:'Le clavier',min:4,steps:[
+    L_CLAV,
+    Q('Les touches noires','Combien y a-t-il de touches noires dans une octave ?',['5','7','12'],0,'5 touches noires + 7 blanches = 12 notes par octave.',F_CLAV),
+    K('Trouve la touche','Clique sur <span class="hl">Mi♭</span>.',[63],'Mi♭ est la touche noire juste à gauche de Mi. C’est aussi Ré♯.',F_CLAV,false),
+    NAME('Touches noires','Place le nom de ces touches noires. Utilise les dièses : le Do et le Fa sont indiqués.',[{m:61,ok:['Do♯']},{m:66,ok:['Fa♯']},{m:68,ok:['Sol♯']}],['Do♯','Ré♯','Fa♯','Sol♯','La♯'],{60:'Do',65:'Fa'},F_CLAV)
+  ]},
+  l13:{title:'Dièse, bémol, bécarre',min:4,steps:[
+    L_ALT1, L_ALT2,
+    Q('Le bémol','Un bémol (♭) placé devant une note…',['la descend d’un demi-ton','la monte d’un demi-ton','la descend d’un ton'],0,'Le bémol descend la note d’un demi-ton. Le dièse, lui, la monte d’un demi-ton.',F_ALTER),
+    MATCH('Même hauteur','Relie les notes qui sonnent pareil.',[['Mi♯','Fa'],['Si♯','Do'],['Fa♭','Mi'],['Do♭','Si']],F_ALTER),
+    K('Un dièse','Clique sur <span class="hl">Sol♯</span>.',[68],'Sol♯ est la touche noire juste à droite de Sol. C’est aussi La♭.',F_ALTER,false)
+  ]},
+  l21:{title:'Le demi-ton',min:4,steps:[
+    L_DEMI,
+    K('À toi : un demi-ton','Clique sur la note située <span class="hl">un demi-ton au-dessus de Mi</span>.',[65],'Mi → Fa est un demi-ton : aucune touche noire entre les deux.',F_TONS),
+    EAR('À l’oreille','Écoute ces deux notes. Quelle distance les sépare ?',[71,72],['Un demi-ton','Un ton','Trois demi-tons'],0,'Si → Do : un demi-ton, la plus petite distance.',F_TONS),
+    STAIRS('Escalier','Monte de <span class="hl">Mi</span> à <span class="hl">Sol</span> demi-ton par demi-ton : clique Fa, puis Fa♯, puis Sol.',[65,66,67],'Mi → Fa → Fa♯ → Sol : trois demi-tons.',F_TONS),
+    Q('Sans touche noire','Quelle paire de touches blanches voisines n’a pas de touche noire entre elles ?',['Mi – Fa','Do – Ré','Sol – La'],0,'Seules Mi – Fa et Si – Do sont voisines sans touche noire entre elles.',F_TONS)
+  ]},
+  l22:{title:'Le ton',min:4,steps:[
+    L_TON,
+    K('Attention à Mi – Fa','Clique sur la note située <span class="hl">un ton au-dessus de Mi</span>.',[66],'Mi → Fa → Fa♯ : deux demi-tons. Mi – Fa ne fait qu’un demi-ton, il faut donc aller jusqu’à Fa♯.',F_TONS,false),
+    STAIRS('Deux tons','Monte de <span class="hl">Do</span> de deux tons. Clique la note d’arrivée de chaque ton : Ré, puis Mi.',[62,64],'Do → Ré → Mi : deux tons, soit quatre demi-tons.',F_TONS),
+    EAR('Ton ou demi-ton ?','Écoute ces deux notes. Quelle distance les sépare ?',[60,62],['Un ton','Un demi-ton','Un ton et demi'],0,'Do → Ré passe par Do♯ : deux demi-tons, soit un ton.',F_TONS),
+    Q('Un ton et demi','Un ton et demi vaut combien de demi-tons ?',['3','2','4'],0,'Un ton = 2 demi-tons, plus un demi-ton : 3 demi-tons.',F_TONS)
+  ]},
+  l23:{title:'Sur le manche',min:5,steps:[
+    L_MANCHE,
+    FRN('Nomme la case','Quelle note sonne sur la case marquée, sur la <span class="hl">corde de Ré</span> (la quatrième en partant du haut) ?',2,2,['Mi','Fa','Ré♯'],0,'Ré (case 0) → Ré♯ (1) → Mi (2).',F_MANCHE),
+    FR('Trouve la case','Sur la <span class="hl">corde de La</span> (la deuxième en partant du bas), clique sur la case qui donne <span class="hl">Si</span>.',{s:1,f:2},'La → La♯ (case 1) → Si (case 2).',F_MANCHE),
+    Q('Deux cases','Sur la corde de Ré, de la case 0 à la case 2, tu montes de…',['1 ton','1 demi-ton','2 tons'],0,'Deux cases = deux demi-tons = 1 ton.',F_MANCHE)
+  ]},
+  l31:{title:'L’octave',min:4,steps:[
+    L_OCT,
+    Q('Une octave plus haut','Le La4 vibre à 440 Hz. À quelle fréquence vibre le <span class="hl">La une octave plus haut</span> ?',['660 Hz','880 Hz','450 Hz'],1,'Une octave double la fréquence : 440 × 2 = 880 Hz.',F_OCT),
+    ORDER('Du grave à l’aigu','Range ces fréquences de La, du plus grave au plus aigu.',['110 Hz','220 Hz','440 Hz','880 Hz'],'Chaque octave double la fréquence.',F_OCT),
+    EAR('Même note ?','Écoute ces deux notes. Quel est le lien entre elles ?',[60,72],['La même note, une octave plus haut','Deux notes différentes','Exactement la même hauteur'],0,'Un Do et le Do suivant : même nom, une octave d’écart.',F_OCT,1000),
+    K('L’octave au-dessus','Clique sur le <span class="hl">Do une octave plus haut</span> que le premier Do du clavier.',[72],'Le Do suivant, 12 demi-tons plus haut, est une octave au-dessus.',F_OCT)
+  ]},
+  l32:{title:'Le La de référence',min:4,steps:[
+    L_LA,
+    Q('La de référence','Quelle est la fréquence du La de référence (La4) ?',['440 Hz','261 Hz','880 Hz'],0,'La4 = 440 Hz, la référence d’accordage (ISO 16). 261 Hz correspond au Do central.',F_OCT),
+    Q('La corde de La','La corde de La d’une guitare sonne un La2. Quelle fréquence ?',['110 Hz','220 Hz','55 Hz'],0,'La2 est deux octaves sous La4 : 440 ÷ 2 ÷ 2 = 110 Hz.',F_OCT),
+    Q('En Europe','En Europe continentale, on accorde souvent le La entre…',['440 et 444 Hz','400 et 420 Hz','460 et 480 Hz'],0,'Le La varie couramment entre 440 et 444 Hz en Europe continentale.',F_OCT),
+    Q('Le demi-ton en Hz','Chaque demi-ton multiplie la fréquence par environ…',['1,06','2','1,5'],0,'12 demi-tons doivent doubler la fréquence : la racine douzième de 2, soit environ 1,0595.',F_OCT)
+  ]},
+  l33:{title:'Le Do central et les numéros',min:5,steps:[
+    L_NUM,
+    Q('Où change le numéro ?','Le numéro d’octave change à chaque…',['Do','La','Mi'],0,'Dans la notation scientifique, le numéro change à chaque Do.',F_NUM),
+    Q('Juste en dessous','Quelle note se trouve juste en dessous de C4 ?',['B3','B4','C3'],0,'Le numéro change au Do : juste sous C4 vient le Si de l’octave 3, soit B3.',F_NUM),
+    MATCH('Quelques repères','Relie chaque note à sa valeur.',[['Do central (C4)','MIDI 60'],['La de référence (A4)','MIDI 69'],['Mi grave de guitare (E2)','MIDI 40'],['Note la plus grave du piano','A0, 27,5 Hz']],F_NUM)
+  ]},
+  l34:{title:'FL Studio et conventions',min:4,steps:[
+    L_FL,
+    Q('Traduire FL Studio','Dans le piano roll de FL Studio, tu vois <span class="hl">C5</span>. Quel est son nom en notation standard ?',['C3','C4','C5','C6'],1,'FL Studio affiche le Do central en C5 ; en notation standard, c’est C4 (MIDI 60).',F_NUM),
+    Q('Un plugin, une convention','Un plugin indique qu’un son se joue sur C3. Que dois-tu vérifier ?',['la convention de numérotation','le volume du plugin','la tonalité du morceau'],0,'Selon les logiciels, C3 peut désigner des notes différentes. Vérifie la convention avant de placer tes notes.',F_NUM),
+    MATCH('Traduis','Relie la note affichée par FL Studio à son nom en notation standard.',[['FL : C5','C4'],['FL : A3','A2'],['FL : E3','E2'],['FL : G6','G5']],F_NUM)
+  ]},
+  p1:{title:'Ta guitare et ton piano roll',min:6,steps:[
+    L_TUN,
+    MATCH('Tes accordages','Relie chaque accordage à ses cordes à vide, de la plus grave à la plus aiguë.',[['Standard','Mi La Ré Sol Si Mi'],['Drop D','Ré La Ré Sol Si Mi'],['Half-step down','Mi♭ La♭ Ré♭ Sol♭ Si♭ Mi♭']],F_MANCHE),
+    FR('En drop D','Tu es en <span class="hl">drop D</span>. Sur la corde grave, clique sur la case qui donne <span class="hl">Fa</span>.',{s:0,f:3},'Ré → Ré♯ → Mi → Fa : case 3.',F_MANCHE,DROPD,false),
+    FR('En half-step down','Tu es en <span class="hl">half-step down</span>. Sur la corde grave (Mi♭), clique sur la case qui donne <span class="hl">Sol♭</span>.',{s:0,f:3},'Mi♭ → Mi → Fa → Sol♭ : case 3.',F_MANCHE,HSD,true),
+    Q('Passer en drop D','De combien de demi-tons descends-tu la corde grave pour passer du standard au drop D ?',['2','1','3'],0,'Mi → Ré est un ton, soit 2 demi-tons.',F_MANCHE),
+    Q('Dans FL Studio','En standard, la corde de Mi grave sonne un E2. Comment FL Studio affiche-t-il cette note ?',['E1','E2','E3','E4'],2,'FL Studio compte une octave plus haut que la notation standard : E2 s’affiche E3.',F_NUM)
+  ]}
+};
+
+/* ---------- Exercices rapides (10 questions tirées au hasard) ---------- */
+function names(arr,pcs){return pcs.map(function(p){return arr[p]})}
+function g1(){
+  var t=Math.floor(Math.random()*4), pc, group, others, arr, pcs;
+  if(t===2){
+    var E=pick([[1,'Do♯','Ré♭'],[3,'Ré♯','Mi♭'],[6,'Fa♯','Sol♭'],[8,'Sol♯','La♭'],[10,'La♯','Si♭']]), flip=Math.random()<.5, from=flip?E[2]:E[1], to=flip?E[1]:E[2];
+    var wrong=shuffle(FRS.concat(FRF).filter(function(n){return n!==to&&n!==from&&n!==E[1]&&n!==E[2]&&n.indexOf('♯')+n.indexOf('♭')>-2})).slice(0,2);
+    return {title:'Do ou C ?',q:'Quelle note est la <span class="hl">même touche</span> que <span class="hl">'+from+'</span> ?',options:[to].concat(wrong),answer:0,explain:E[1]+' et '+E[2]+' désignent la même touche noire.',fiche:F_CLAV};
+  }
+  if(t===3){
+    var L=['C','D','E','F','G','A','B'], i=Math.floor(Math.random()*7), nx=L[(i+1)%7];
+    return {title:'Do ou C ?',q:'Après la lettre <span class="hl">'+L[i]+'</span>, quelle lettre vient dans la suite des notes ?',options:[nx,L[(i+2)%7],L[(i+6)%7]],answer:0,explain:'L’ordre est C D E F G A B, puis on revient à C.'};
+  }
+  pc=pick(WHITE.concat(BLACK)); group=BLACK.indexOf(pc)>=0?BLACK:WHITE;
+  others=shuffle(group.filter(function(p){return p!==pc})).slice(0,2);
+  arr=t===0?ENS:FRS; pcs=[pc].concat(others);
+  return {title:'Do ou C ?',q:t===0?'Comment écrit-on <span class="hl">'+FRS[pc]+'</span> avec une lettre ?':'Quelle note s’écrit <span class="hl">'+ENS[pc]+'</span> ?',
+    options:names(arr,pcs),answer:0,explain:FRS[pc]+' = '+ENS[pc]+'.'};
+}
+function g2(){
+  var pc=Math.floor(Math.random()*12), i;
+  if(Math.random()<.25){
+    var m=55+Math.floor(Math.random()*12), d=pick([1,2,3]), all=['Un demi-ton','Un ton','Un ton et demi'], nm=all[d-1];
+    return {title:'À l’oreille',q:'Écoute ces deux notes. Quelle distance les sépare ?',options:[nm].concat(all.filter(function(x){return x!==nm})),answer:0,
+      explain:FRS[m%12]+' → '+FRS[(m+d)%12]+' : '+d+' demi-ton'+(d>1?'s':'')+'.',key:'oreille '+m+' '+d,
+      extra:function(root){playBtn(root,[m,m+d],800,'Écouter les deux notes')}};
+  }
+  if(Math.random()<.35){
+    var up=Math.random()<.5, d=up?1:-1, tgt=(pc+2*d+12)%12, mid=(pc+d+12)%12;
+    var opts=[FRS[tgt],FRS[mid],FRS[(pc+3*d+12)%12]];
+    return {title:'Combien de demi-tons ?',q:'Quelle note est <span class="hl">un ton '+(up?'au-dessus':'au-dessous')+' de '+FRS[pc]+'</span> ?',
+      options:opts,answer:0,explain:'Un ton = 2 demi-tons : '+FRS[pc]+' → '+FRS[mid]+' → '+FRS[tgt]+'.'};
+  }
+  var n=1+Math.floor(Math.random()*7), chain=[];
+  for(i=0;i<=n;i++) chain.push(FRS[(pc+i)%12]);
+  var cand=[n,n+1,n-1,n+2,n-2].filter(function(v){return v>=1}), seen={}, opts2=[];
+  cand.forEach(function(v){ if(!seen[v]&&opts2.length<3){seen[v]=1; opts2.push(String(v))} });
+  return {title:'Combien de demi-tons ?',q:'De <span class="hl">'+FRS[pc]+'</span> à <span class="hl">'+FRS[(pc+n)%12]+'</span>, en montant, combien de demi-tons ?',
+    options:opts2,answer:0,explain:chain.join(', ')+' : '+n+' demi-ton'+(n>1?'s':'')+'.'};
+}
+function g3(){
+  var t=Math.floor(Math.random()*3), L=pick(['C','D','E','F','G','A','B']), n;
+  if(t===0){
+    var k=pick([2,3,5,6]), hz=440*Math.pow(2,k-4);
+    return {title:'Octave express',q:'Le La4 vibre à 440 Hz. À quelle fréquence vibre le <span class="hl">La'+k+'</span> ?',
+      options:[hz+' Hz',(hz*2)+' Hz',(hz/2)+' Hz'],answer:0,explain:'Chaque octave double (ou divise par deux) la fréquence : La'+k+' = '+hz+' Hz.'};
+  }
+  if(t===1){
+    n=pick([2,3,4,5,6]);
+    return {title:'Octave express',q:'FL Studio affiche <span class="hl">'+L+n+'</span>. Quel est son nom en notation standard ?',
+      options:[L+(n-1),L+n,L+(n-2)],answer:0,explain:'FL Studio compte une octave plus haut : '+L+n+' devient '+L+(n-1)+' en notation standard.',fiche:F_NUM};
+  }
+  n=pick([1,2,3,4,5]);
+  return {title:'Octave express',q:'En notation standard, tu as <span class="hl">'+L+n+'</span>. Comment FL Studio l’affiche-t-il ?',
+    options:[L+(n+1),L+n,L+(n+2)],answer:0,explain:'FL Studio compte une octave plus haut : '+L+n+' s’affiche '+L+(n+1)+'.',fiche:F_NUM};
+}
+var GAMES={
+  g1:{title:'Do ou C ?',gen:g1,fiche:F_NOMS},
+  g2:{title:'Combien de demi-tons ?',gen:g2,fiche:F_TONS},
+  g3:{title:'Octave express',gen:g3,fiche:F_OCT}
+};
+function gameSteps(id){
+  var out=[], seen={}, tries=0;
+  while(out.length<10 && tries<200){
+    tries++;
+    var q=GAMES[id].gen(), key=q.key||q.q; q.fiche=q.fiche||GAMES[id].fiche;
+    if(seen[key]) continue;
+    seen[key]=1; out.push(quizStep(q));
+  }
+  return out;
+}
+var POOLS={q1:['l11','l12','l13'],q2:['l21','l22','l23'],q3:['l31','l32','l33','l34']};
+function quizSteps(id){
+  var all=[];
+  POOLS[id].forEach(function(l){LESSONS[l].steps.forEach(function(s){if(s.graded) all.push(s)})});
+  return shuffle(all).slice(0,8);
+}
+
+/* ---------- Parcours ---------- */
+var UNITS=[
+  {id:'u1',title:'Les notes',desc:'Les noms des notes, le clavier, les dièses et les bémols.',glyph:'♪',nodes:[
+    {id:'l11',kind:'lesson'},{id:'l12',kind:'lesson'},{id:'l13',kind:'lesson'},{id:'g1',kind:'game'},{id:'q1',kind:'quiz'}]},
+  {id:'u2',title:'Tons et demi-tons',desc:'Mesurer la distance entre deux notes, au clavier et sur le manche.',glyph:'½',nodes:[
+    {id:'l21',kind:'lesson'},{id:'l22',kind:'lesson'},{id:'l23',kind:'lesson'},{id:'g2',kind:'game'},{id:'q2',kind:'quiz'}]},
+  {id:'u3',title:'Les octaves',desc:'Fréquences, La de référence, numéros d’octave et conventions.',glyph:'×2',nodes:[
+    {id:'l31',kind:'lesson'},{id:'l32',kind:'lesson'},{id:'l33',kind:'lesson'},{id:'l34',kind:'lesson'},{id:'g3',kind:'game'},{id:'q3',kind:'quiz'}]},
+  {id:'u4',title:'Sur ton matériel',desc:'Applique les bases à tes accordages de guitare et au piano roll de FL Studio.',glyph:'♯',nodes:[
+    {id:'p1',kind:'project'}]}
+];
+var NODES={}; UNITS.forEach(function(u){u.nodes.forEach(function(n){NODES[n.id]=n})});
+var MODS=[
+  ['Rythme et lecture','Pulsation, mesures, figures de notes et silences, syncopes. Lien direct avec le jembé.'],
+  ['Intervalles','Leur nom, leur son, comment les reconnaître.'],
+  ['Gammes','Majeure, mineures, tonalités, armures, cercle des quintes.'],
+  ['Accords','Triades, renversements, power chords, 7èmes, 9èmes, sus, accords altérés.'],
+  ['Harmonie et progressions','Degrés, accords d’une tonalité, cadences, progressions courantes.'],
+  ['Pentatoniques, blues et modes','Dorien, phrygien et les autres, avec leur usage selon les styles.'],
+  ['Accordages et transposition','Effet du half-step down et du drop D, transposer un morceau.'],
+  ['Application par style','Punk, nu-métal, rap, musique de film.'],
+  ['Partition, tablature et piano roll','Lire, écrire et reporter dans FL Studio.']
+];
+var ICONS={
+  play:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>',
+  check:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="rgba(0,0,0,.2)"/><path d="M7.5 12.5l3 3 6-7" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  game:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8h10a5 5 0 0 1 5 5v1a3.2 3.2 0 0 1-5.6 2.1L14.8 14.5H9.2l-1.6 1.6A3.2 3.2 0 0 1 2 14v-1a5 5 0 0 1 5-5z" fill="currentColor"/><path d="M7 11v3M5.5 12.5h3" stroke="var(--game-ink,#fff)" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  trophy:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v6a5 5 0 0 1-10 0z" fill="currentColor"/><path d="M7 5H3.5v1.5A3.5 3.5 0 0 0 7 10M17 5h3.5v1.5A3.5 3.5 0 0 1 17 10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 14v3.5M9 21h6l-.6-3.5H9.6z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+  crown:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18L2 7l5.5 4.5L12 4l4.5 7.5L22 7l-1 11z" fill="currentColor"/><rect x="4" y="19.5" width="16" height="2.2" rx="1" fill="currentColor"/></svg>',
+  chev:'<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  ok:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="currentColor" opacity=".35"/><path d="M7.5 12.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+};
+function nodeInfo(n){
+  var done=!!S.done[n.id], b=S.best[n.id];
+  if(n.kind==='lesson') return {t:LESSONS[n.id].title,s:LESSONS[n.id].min+' min',done:done,icon:done?ICONS.check:ICONS.play};
+  if(n.kind==='project') return {t:LESSONS[n.id].title,s:'Application du module',done:done,icon:ICONS.crown};
+  if(n.kind==='game') return {t:GAMES[n.id].title,s:b!=null?'record : '+b+'/10':'exercice rapide',done:done,icon:ICONS.game};
+  return {t:'Quiz de validation',s:b!=null?'meilleur : '+b+' %':'8 questions',done:done,icon:ICONS.trophy};
+}
+var DX=[0,36,58,36,0,-36,-58,-36];
+var collapsed={};
+function nextNode(){
+  for(var i=0;i<UNITS.length;i++) for(var j=0;j<UNITS[i].nodes.length;j++) if(!S.done[UNITS[i].nodes[j].id]) return UNITS[i].nodes[j].id;
+  return null;
+}
+function renderTheory(){
+  var p=$('#p-theorie'), k=0, html='';
+  html+='<div class="modhead"><p class="eyebrow">Module 1</p><h1 class="page">Les bases</h1>'+
+    '<p class="lede">Quatre unités : les notes, les tons et demi-tons, les octaves, puis ton matériel. Chaque unité se termine par un exercice rapide et un quiz de validation.</p>'+
+    '<div class="row"><button type="button" class="linkbtn" data-f="f-noms">Fiche de théorie du module</button></div></div>';
+  UNITS.forEach(function(u,ui){
+    var total=u.nodes.length, done=u.nodes.filter(function(n){return S.done[n.id]}).length, fin=done===total, open=!collapsed[u.id];
+    html+='<section class="unit" aria-label="Unité '+(ui+1)+'"><div class="ubanner"><div><p class="ue">Unité '+(ui+1)+'</p><h2>'+u.title+'</h2><p class="ud">'+u.desc+'</p>'+
+      '<button type="button" class="uchip" data-u="'+u.id+'" aria-expanded="'+open+'">'+(fin?ICONS.ok+'Terminée':done+'/'+total)+ICONS.chev+'</button></div><div class="glyph" aria-hidden="true">'+u.glyph+'</div></div>'+
+      '<ul class="path" id="path-'+u.id+'"'+(open?'':' hidden')+'>';
+    u.nodes.forEach(function(n){
+      var d=nodeInfo(n), dx=DX[k%DX.length]; k++;
+      html+='<li><button type="button" class="node k-'+n.kind+(d.done?' done':'')+'" data-node="'+n.id+'" style="--dx:'+dx+'px" aria-label="'+d.t+', '+d.s+(d.done?', terminé':'')+'"><span class="disc">'+d.icon+'</span><span class="nt">'+d.t+'</span><span class="ns">'+d.s+'</span></button></li>';
+    });
+    html+='</ul></section>';
+  });
+  html+='<h2 class="next-h">Prochains modules</h2><ol class="mods" start="2">'+MODS.map(function(m,i){
+    return '<li class="mod"><span class="num">'+(i+2)+'</span><div><h3>'+m[0]+'</h3><p>'+m[1]+'</p></div><span class="soon">À venir</span></li>';
+  }).join('')+'</ol><div class="pbottom"></div>'+
+  '<button type="button" class="btn resume" id="resume">'+ICONS.chev.replace('class="chev"','')+'<span id="resume-t">Reprendre</span></button>';
+  p.innerHTML=html;
+  var nx=nextNode(); $('#resume-t').textContent=nx?'Reprendre':'Tout revoir';
+  p.querySelectorAll('.node').forEach(function(b){b.addEventListener('click',function(){startNode(b.dataset.node)})});
+  p.querySelectorAll('.uchip').forEach(function(b){b.addEventListener('click',function(){
+    var id=b.dataset.u; collapsed[id]=!collapsed[id];
+    $('#path-'+id).hidden=!!collapsed[id]; b.setAttribute('aria-expanded',String(!collapsed[id]));
+  })});
+  $('#resume').addEventListener('click',function(){startNode(nextNode()||'l11')});
+}
+
+
+/* ---------- Suivi : maîtrise par notion + calendrier ---------- */
+var NOTIONS=[
+  [F_NOMS,'Noms des notes'],[F_CLAV,'Clavier et touches noires'],[F_ALTER,'Dièses, bémols, enharmonie'],
+  [F_TONS,'Tons et demi-tons'],[F_MANCHE,'Manche et accordages'],[F_OCT,'Octaves et fréquences'],[F_NUM,'Numéros d’octave']
+];
+var calM=new Date(); calM=new Date(calM.getFullYear(),calM.getMonth(),1);
+function addDays(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n,12)}
+function streaks(){
+  var today=new Date(), cur=0, d=S.days[dkey(today)]?today:addDays(today,-1);
+  while(S.days[dkey(d)]){cur++; d=addDays(d,-1)}
+  var keys=Object.keys(S.days).filter(function(k){return S.days[k]>0}).sort(), best=0, run=0, prev=null;
+  keys.forEach(function(k){
+    var dt=new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10),12);
+    run=(prev&&dkey(addDays(prev,1))===k)?run+1:1; prev=dt; if(run>best) best=run;
+  });
+  return {cur:cur,best:best,total:keys.length};
+}
+function lvl(pct,n){return n===0?'À découvrir':pct>=80?'Acquis':pct>=50?'En progrès':'À renforcer'}
+var confirmReset=false;
+function renderSuivi(){
+  var p=$('#p-suivi'); if(!p) return;
+  var st=streaks(), html='<p class="eyebrow">Suivi</p><h1 class="page">Ta progression</h1>'+
+    '<p class="lede">La maîtrise se calcule sur tes 10 dernières réponses justes <b>du premier coup</b> pour chaque notion.</p>'+
+    '<div class="tiles"><div class="tile"><b>'+st.cur+'</b><span>jour'+(st.cur>1?'s':'')+' d’affilée</span></div><div class="tile"><b>'+st.total+'</b><span>jour'+(st.total>1?'s':'')+' d’activité</span></div><div class="tile"><b>'+st.best+'</b><span>meilleure série</span></div></div>';
+  html+='<div class="card"><h2>Maîtrise par notion</h2>';
+  NOTIONS.forEach(function(nt){
+    var d=S.stats[nt[0].id], n=d?d.n:0, pct=d&&d.r.length?Math.round(100*d.r.reduce(function(a,b){return a+b},0)/d.r.length):0;
+    html+='<div class="mrow"><div class="mtop"><b>'+nt[1]+'</b><span class="mlvl">'+(n?pct+' % · ':'')+lvl(pct,n)+'</span></div>'+
+      '<div class="mbar" role="progressbar" aria-label="'+nt[1]+'" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pct+'"><i class="'+(pct>=80&&n?'ok':'')+'" style="width:'+pct+'%"></i></div>'+
+      '<div class="msub">'+(n?n+' réponse'+(n>1?'s':'')+' au total':'Pas encore de réponse')+'</div></div>';
+  });
+  html+='</div>';
+  var y=calM.getFullYear(), m=calM.getMonth(), off=(calM.getDay()+6)%7, dim=new Date(y,m+1,0).getDate(), tk=dkey(new Date());
+  html+='<div class="card"><h2>Calendrier</h2><div class="calnav"><button type="button" class="btn ghost small" id="calprev" aria-label="Mois précédent">‹</button><strong>'+calM.toLocaleDateString('fr-CH',{month:'long',year:'numeric'})+'</strong><button type="button" class="btn ghost small" id="calnext" aria-label="Mois suivant">›</button></div><div class="cal">';
+  ['L','M','M','J','V','S','D'].forEach(function(w){html+='<span class="wd" aria-hidden="true">'+w+'</span>'});
+  for(var i=0;i<off;i++) html+='<span class="cd empty"></span>';
+  for(var dd=1;dd<=dim;dd++){
+    var key=dkey(new Date(y,m,dd)), c=S.days[key]||0, cls=c>=25?'l3':c>=8?'l2':c>0?'l1':'';
+    html+='<span class="cd '+cls+(key===tk?' today':'')+'" title="'+(c?c+' étapes':'Aucune activité')+'" aria-label="'+dd+', '+(c?c+' étapes':'aucune activité')+'">'+dd+'</span>';
+  }
+  html+='</div><div class="legend"><span><i></i>Aucune</span><span><i style="background:var(--accent-soft)"></i>Quelques étapes</span><span><i style="background:var(--accent)"></i>8 et plus</span><span><i style="background:var(--accent-deep)"></i>25 et plus</span></div></div>'+
+    '<p class="status"><button type="button" class="linkbtn" id="resetS">'+(confirmReset?'Confirmer : tout effacer':'Effacer ma progression')+'</button></p>';
+  p.innerHTML=html;
+  $('#calprev').addEventListener('click',function(){calM=new Date(calM.getFullYear(),calM.getMonth()-1,1); renderSuivi()});
+  $('#calnext').addEventListener('click',function(){calM=new Date(calM.getFullYear(),calM.getMonth()+1,1); renderSuivi()});
+  $('#resetS').addEventListener('click',function(){
+    if(!confirmReset){confirmReset=true; renderSuivi(); return}
+    confirmReset=false; S={done:{},best:{},stats:{},days:{}}; saveS(); renderTheory(); renderSuivi();
+  });
+}
+
+
+/* ---------- Rythme : moteur audio précis, métronome, séquenceur, défi ---------- */
+var BPM=90;
+var eng={t:null,timers:[],onStop:null};
+function stopEngine(){
+  if(eng.t){clearInterval(eng.t); eng.t=null}
+  eng.timers.forEach(clearTimeout); eng.timers=[];
+  if(eng.onStop){var f=eng.onStop; eng.onStop=null; f()}
+}
+function runEngine(o){
+  stopEngine();
+  var c=ac(); if(!c) return;
+  eng.onStop=o.onStop||null;
+  var i=0, next=c.currentTime+0.08;
+  function later2(fn,t){eng.timers.push(setTimeout(fn,Math.max(0,(t-c.currentTime)*1000))); if(eng.timers.length>64) eng.timers.shift()}
+  eng.t=setInterval(function(){
+    while(next<c.currentTime+0.12){
+      if(o.max!=null && i>=o.max){
+        clearInterval(eng.t); eng.t=null;
+        later2(stopEngine,next+0.1); return;
+      }
+      o.tick(i,next);
+      (function(ii,tt){ if(o.ui) later2(function(){o.ui(ii)},tt) })(i,next);
+      next+=o.interval(); i++;
+    }
+  },25);
+}
+function env(t,type,f0,f1,g,d){
+  var c=ctx, o=c.createOscillator(), gn=c.createGain();
+  o.type=type; o.frequency.setValueAtTime(f0,t);
+  if(f1) o.frequency.exponentialRampToValueAtTime(f1,t+d*0.6);
+  gn.gain.setValueAtTime(g,t); gn.gain.exponentialRampToValueAtTime(0.0001,t+d);
+  o.connect(gn); gn.connect(c.destination); o.start(t); o.stop(t+d+0.02);
+}
+function clickAt(t,k){
+  if(k==='a') env(t,'square',1500,0,0.2,0.05);
+  else if(k==='m') env(t,'square',1200,0,0.17,0.05);
+  else if(k==='n') env(t,'square',1000,0,0.14,0.05);
+  else env(t,'sine',800,0,0.07,0.03);
+}
+function hitAt(t,r){
+  if(r===0) env(t,'sine',150,55,0.9,0.25);
+  else if(r===1) env(t,'triangle',330,0,0.55,0.14);
+  else env(t,'square',1200,0,0.12,0.06);
+}
+function hitNow(r){var c=ac(); if(c) hitAt(c.currentTime+0.01,r)}
+function setBpm(v){
+  BPM=Math.max(40,Math.min(220,Math.round(v)));
+  var b=$('#bpm'), r=$('#bpmr'); if(b) b.textContent=BPM; if(r) r.value=BPM;
+}
+function renderRythme(){
+  var p=$('#p-rythme');
+  p.innerHTML='<p class="eyebrow">Rythme</p><h1 class="page">Métronome et rythmes</h1>'+
+    '<p class="lede">Un outil de travail pour la guitare, FL Studio et le jembé. Le tempo se règle une fois et sert partout sur cette page.</p>'+
+    '<div class="card"><h2>Tempo</h2><div class="bpmrow"><button type="button" class="btn ghost small" id="bm" aria-label="Ralentir d’un battement par minute">−</button>'+
+    '<div class="bpmbox"><b id="bpm">'+BPM+'</b><span>BPM</span></div><button type="button" class="btn ghost small" id="bp" aria-label="Accélérer d’un battement par minute">+</button></div>'+
+    '<input type="range" id="bpmr" min="40" max="220" value="'+BPM+'" aria-label="Tempo en battements par minute">'+
+    '<div class="row"><button type="button" class="btn ghost small" id="tap">Tap tempo</button><span class="status" style="margin:0">Tape plusieurs fois en rythme pour trouver un tempo.</span></div></div>'+
+    '<div class="card"><h2>Métronome</h2><p class="inst" style="margin-top:0">Mesure</p><div class="seg" id="sig" role="group" aria-label="Mesure"></div>'+
+    '<p class="inst">Subdivision</p><div class="seg" id="sub" role="group" aria-label="Subdivision"></div>'+
+    '<div class="dots" id="dots" aria-hidden="true"></div><button type="button" class="btn wide" id="mgo">Démarrer</button></div>'+
+    '<div class="card"><h2>Séquenceur</h2><p class="lede" style="margin:0 0 4px">16 pas, soit 4 temps de 4 pas. Touche un pas pour l’activer, puis lance la lecture.</p><div id="seqg"></div>'+
+    '<div class="row"><button type="button" class="btn small" id="sgo">Jouer</button><button type="button" class="btn ghost small" id="sclr">Effacer</button></div>'+
+    '<p class="inst">Modèles</p><div class="pool" id="pres"></div></div>'+
+    '<div class="card"><h2>Écoute et reproduis</h2><p class="lede" style="margin:0">Écoute un rythme de 8 pas (4 temps, avec un pas entre chaque temps), puis reproduis-le dans la grille.</p>'+
+    '<p class="inst">Ta version</p><div class="sgrid" id="chg"></div>'+
+    '<div class="row"><button type="button" class="btn small" id="cl">Écouter le rythme</button><button type="button" class="btn ghost small" id="cm">Écouter ma version</button></div>'+
+    '<div class="row"><button type="button" class="btn small" id="cv">Vérifier</button><button type="button" class="btn ghost small" id="cn">Nouveau rythme</button></div>'+
+    '<p class="rmsg" id="cmsg" aria-live="polite"></p></div>';
+
+  /* tempo */
+  $('#bm').addEventListener('click',function(){setBpm(BPM-1)});
+  $('#bp').addEventListener('click',function(){setBpm(BPM+1)});
+  $('#bpmr').addEventListener('input',function(e){setBpm(+e.target.value)});
+  var taps=[];
+  $('#tap').addEventListener('click',function(){
+    var now=Date.now();
+    if(taps.length&&now-taps[taps.length-1]>2000) taps=[];
+    taps.push(now); if(taps.length>6) taps.shift();
+    if(taps.length>=2) setBpm(60000/((taps[taps.length-1]-taps[0])/(taps.length-1)));
+  });
+
+  /* métronome */
+  var mt={beats:4,sub:1,mid:false}, dots=$('#dots'), sigB=$('#sig'), subB=$('#sub'), go=$('#mgo');
+  function paintDots(on,acc){
+    dots.innerHTML='';
+    for(var i=0;i<mt.beats;i++) dots.append(h('<span class="dot'+(i===0?' a':'')+(i===on?' on':'')+'"></span>'));
+  }
+  [['2/4',2,false],['3/4',3,false],['4/4',4,false],['6/8',6,true]].forEach(function(d,i){
+    var b=h('<button type="button" aria-pressed="'+(i===2)+'">'+d[0]+'</button>');
+    b.addEventListener('click',function(){mt.beats=d[1]; mt.mid=d[2]; sigB.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',String(x===b))}); paintDots(-1)});
+    sigB.append(b);
+  });
+  [['Aucune',1],['Croches',2],['Triolets',3],['Doubles croches',4]].forEach(function(d,i){
+    var b=h('<button type="button" aria-pressed="'+(i===0)+'">'+d[0]+'</button>');
+    b.addEventListener('click',function(){mt.sub=d[1]; subB.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',String(x===b))})});
+    subB.append(b);
+  });
+  paintDots(-1);
+  function mStop(){go.textContent='Démarrer'; paintDots(-1)}
+  go.addEventListener('click',function(){
+    if(eng.t&&eng.onStop===mStop){stopEngine(); return}
+    runEngine({
+      interval:function(){return 60/BPM/mt.sub},
+      tick:function(i,t){
+        var n=mt.sub, sub=i%n, beat=Math.floor(i/n)%mt.beats;
+        if(sub!==0) clickAt(t,'s'); else clickAt(t,beat===0?'a':(mt.mid&&beat===3?'m':'n'));
+      },
+      ui:function(i){var n=mt.sub; if(i%n===0) paintDots(Math.floor(i/n)%mt.beats)},
+      onStop:mStop
+    });
+    go.textContent='Arrêter';
+  });
+
+  /* séquenceur */
+  var names=['Grave','Médium','Aigu'], seq16=[[],[],[]], cells=[[],[],[]], sg=$('#seqg'), sgo=$('#sgo');
+  function beatLbl(i){return i%4===0?String(i/4%4+1):''}
+  names.forEach(function(nm,r){
+    sg.append(h('<p class="inst">'+nm+'</p>'));
+    var g=h('<div class="sgrid"></div>');
+    for(var i=0;i<16;i++){
+      (function(i){
+        seq16[r][i]=false;
+        var c=h('<button type="button" class="rc'+(i%4===0?' beat':'')+'" aria-pressed="false" aria-label="'+nm+', pas '+(i+1)+'">'+beatLbl(i)+'</button>');
+        c.addEventListener('click',function(){
+          seq16[r][i]=!seq16[r][i]; c.classList.toggle('on',seq16[r][i]); c.setAttribute('aria-pressed',String(seq16[r][i]));
+          if(seq16[r][i]) hitNow(r);
+        });
+        cells[r][i]=c; g.append(c);
+      })(i);
+    }
+    sg.append(g);
+  });
+  function paintSeq(){seq16.forEach(function(row,r){row.forEach(function(v,i){cells[r][i].classList.toggle('on',v); cells[r][i].setAttribute('aria-pressed',String(v))})})}
+  function setPh(st){cells.forEach(function(row){row.forEach(function(c,i){c.classList.toggle('ph',i===st)})})}
+  function sStop(){sgo.textContent='Jouer'; setPh(-1)}
+  sgo.addEventListener('click',function(){
+    if(eng.t&&eng.onStop===sStop){stopEngine(); return}
+    runEngine({
+      interval:function(){return 60/BPM/4},
+      tick:function(i,t){var st=i%16; seq16.forEach(function(row,r){if(row[st]) hitAt(t,r)})},
+      ui:function(i){setPh(i%16)},
+      onStop:sStop
+    });
+    sgo.textContent='Arrêter';
+  });
+  $('#sclr').addEventListener('click',function(){seq16.forEach(function(row){row.fill(false)}); paintSeq()});
+  [['Pulsation',[[0,4,8,12],[],[]]],['Croches',[[],[0,2,4,6,8,10,12,14],[]]],['Temps et contretemps',[[0,4,8,12],[2,6,10,14],[]]]].forEach(function(d){
+    var b=h('<button type="button" class="pchip">'+d[0]+'</button>');
+    b.addEventListener('click',function(){
+      seq16.forEach(function(row,r){row.fill(false); d[1][r].forEach(function(i){row[i]=true})}); paintSeq();
+    });
+    $('#pres').append(b);
+  });
+
+  /* défi d'écoute */
+  var pat=[], user=[], ccells=[], checked=false, chg=$('#chg'), cmsg=$('#cmsg');
+  function lbl(i){return i%2===0?String(i/2+1):'&'}
+  for(var i=0;i<8;i++){
+    (function(i){
+      user[i]=false;
+      var c=h('<button type="button" class="rc'+(i%2===0?' beat':'')+'" aria-pressed="false" aria-label="Pas '+(i+1)+'">'+lbl(i)+'</button>');
+      c.addEventListener('click',function(){
+        if(checked) return;
+        user[i]=!user[i]; c.classList.toggle('on',user[i]); c.setAttribute('aria-pressed',String(user[i]));
+        if(user[i]) hitNow(1);
+      });
+      ccells[i]=c; chg.append(c);
+    })(i);
+  }
+  function newPat(){
+    var n; do{pat=[]; n=0; for(var i=0;i<8;i++){var v=Math.random()<.5; pat[i]=v; if(v) n++}}while(n<3||n>5);
+    user=user.map(function(){return false}); checked=false; cmsg.textContent=''; cmsg.className='rmsg';
+    ccells.forEach(function(c,i){c.className='rc'+(i%2===0?' beat':''); c.textContent=lbl(i); c.setAttribute('aria-pressed','false')});
+  }
+  function play(arr,btn,label){
+    var b=$(btn);
+    function st(){$('#cl').textContent='Écouter le rythme'; $('#cm').textContent='Écouter ma version'}
+    runEngine({
+      max:16, interval:function(){return 60/BPM/2},
+      tick:function(i,t){var k=i%8; if(k%2===0) clickAt(t,'s'); if(arr[k]) hitAt(t,1)},
+      onStop:st
+    });
+    b.textContent='Lecture…';
+  }
+  $('#cl').addEventListener('click',function(){play(pat,'#cl')});
+  $('#cm').addEventListener('click',function(){play(user,'#cm')});
+  $('#cn').addEventListener('click',function(){stopEngine(); newPat()});
+  $('#cv').addEventListener('click',function(){
+    if(checked) return;
+    if(!user.some(Boolean)){cmsg.textContent='Place d’abord quelques pas dans la grille.'; cmsg.className='rmsg'; return}
+    checked=true; var ok=true;
+    ccells.forEach(function(c,i){
+      var good=user[i]===pat[i]; if(!good) ok=false;
+      if(user[i]) c.classList.add(good?'good':'bad');
+      else if(pat[i]) {c.classList.add('miss'); c.textContent='●'}
+    });
+    var hits=pat.filter(Boolean).length;
+    cmsg.className='rmsg '+(ok?'good':'bad');
+    cmsg.textContent=ok?'Bien joué ! Rythme exact.':'Pas tout à fait. Le rythme avait '+hits+' pas actifs : les cases en rouge sont à corriger, le point ● marque un pas oublié.';
+    touchDay(); renderSuivi();
+  });
+  newPat();
+}
+
+/* ---------- Moteur de session ---------- */
+var lesson=$('#lesson'), stage=$('#stage'), fill=$('#fill'), countEl=$('#count'), next=$('#next'), fb=$('#fb'), foot=$('#lfoot'), track=$('#track');
+var L=null;
+function setProgress(n){fill.style.width=(L.n?n/L.n*100:0)+'%'; countEl.textContent=n+'/'+L.n; track.setAttribute('aria-valuenow',String(n)); track.setAttribute('aria-valuemax',String(L.n))}
+function startNode(id){
+  stopEngine();
+  var nd=NODES[id], steps, retry;
+  if(!nd) return;
+  if(nd.kind==='quiz'){steps=quizSteps(id); retry=false}
+  else if(nd.kind==='game'){steps=gameSteps(id); retry=false}
+  else {steps=LESSONS[id].steps; retry=true}
+  L={id:id,kind:nd.kind,steps:steps,retry:retry,n:steps.length,total:steps.filter(function(s){return s.graded}).length,
+     queue:steps.map(function(s,i){return i}),pos:0,score:0,passed:0,tried:{},phase:'steps',validate:null,answered:false};
+  lesson.hidden=false; document.body.style.overflow='hidden';
+  renderStep();
+}
+function renderStep(){
+  clearTimers();
+  var cur=L.queue[L.pos], s=L.steps[cur], retry=!!L.tried[cur];
+  setProgress(L.passed); foot.className='lfoot'; fb.textContent=''; next.textContent=s.graded?'Valider':'Continuer'; next.disabled=!!s.graded;
+  L.validate=null; L.answered=false;
+  stage.innerHTML=''; var root=h('<div class="step"></div>'); stage.append(root);
+  var answered=false;
+  var api={select:function(fn){
+    if(answered) return;
+    L.validate=fn; next.disabled=false;
+  },unselect:function(){
+    if(answered) return;
+    L.validate=null; next.disabled=true;
+  },done:function(ok,msg){
+    if(answered) return; answered=true; L.answered=true; L.validate=null;
+    var first=!L.tried[cur]; L.tried[cur]=true;
+    if(first&&s.fiche) record(s.fiche.id,ok);
+    touchDay();
+    if(ok){ if(first) L.score++; L.passed++; setProgress(L.passed); }
+    else if(L.retry){ L.queue.push(cur); }
+    else { L.passed++; setProgress(L.passed); }
+    foot.className='lfoot '+(ok?'good':'bad');
+    fb.textContent=ok ? 'Bien joué ! '+msg : 'Pas tout à fait. '+msg;
+    next.textContent='Continuer'; next.disabled=false;
+    try{next.focus({preventScroll:true})}catch(e){}
+  }};
+  s.render(root,api);
+  if(retry) root.insertAdjacentHTML('afterbegin','<p class="eyebrow">Question à refaire</p>');
+  if(s.fiche) root.append(h('<p class="fiche">Fiche de théorie : <button type="button" class="linkbtn" data-f="'+s.fiche.id+'">'+s.fiche.label+'</button></p>'));
+  document.querySelector('.lbody').scrollTop=0;
+}
+function showResults(){
+  clearTimers(); L.phase='results'; L.passed=L.n; setProgress(L.n);
+  var big, lead, title;
+  S.done[L.id]=true;
+  if(L.kind==='quiz'){
+    var pct=Math.round(100*L.score/L.total);
+    S.best[L.id]=Math.max(pct,S.best[L.id]||0);
+    title='Quiz terminé'; big=pct+' %';
+    lead=(pct>=80?'Quiz réussi. ':'Seuil de réussite : 80 %. Relis les leçons de l’unité, puis retente. ')+'Meilleur score : '+S.best[L.id]+' %.';
+  }else if(L.kind==='game'){
+    S.best[L.id]=Math.max(L.score,S.best[L.id]||0);
+    title='Exercice terminé'; big=L.score+'/'+L.total;
+    lead='Record : '+S.best[L.id]+'/'+L.total+'.';
+  }else{
+    title=L.kind==='project'?'Application terminée':'Leçon terminée'; big=L.score+'/'+L.total;
+    lead='Réponses justes du premier coup. '+(L.score===L.total?'Aucune erreur.':'Relis la fiche de théorie si besoin, puis refais la leçon pour améliorer ton score.');
+  }
+  saveS();
+  foot.className='lfoot good'; fb.textContent=''; next.disabled=false; next.textContent='Retour au parcours';
+  stage.innerHTML='<h2>'+title+'</h2>'+(L.total?'<div class="score">'+big+'</div>':'')+'<p class="lead">'+lead+'</p>'+
+    '<div class="row"><button type="button" class="btn ghost" id="redo">Refaire</button><button type="button" class="linkbtn" data-f="f-noms">Ouvrir la fiche de théorie</button></div>';
+  var id=L.id; stage.querySelector('#redo').addEventListener('click',function(){startNode(id)});
+}
+function closeLesson(){
+  clearTimers(); lesson.hidden=true; document.body.style.overflow='';
+  renderTheory(); renderSuivi();
+}
+next.addEventListener('click',function(){
+  if(!L) return;
+  if(L.phase==='results'){closeLesson(); return}
+  var g=L.steps[L.queue[L.pos]].graded;
+  if(g && !L.answered){ if(L.validate) L.validate(); return }
+  if(!g){L.passed++; touchDay()}
+  if(L.pos<L.queue.length-1){L.pos++; renderStep()} else showResults();
+});
+$('#lclose').addEventListener('click',closeLesson);
+
+/* ---------- Fiche de théorie ---------- */
+var FICHE=''+
+'<h3 id="f-noms">Les sept noms de notes</h3>'+
+'<p>Deux écritures coexistent. Le système syllabique (Do, Ré, Mi, Fa, Sol, La, Si) est employé en France, en Italie, en Espagne et dans de nombreux autres pays. Le système alphabétique (C, D, E, F, G, A, B) est celui du monde anglophone.</p>'+
+'<p><b>Correspondance :</b> Do = C, Ré = D, Mi = E, Fa = F, Sol = G, La = A, Si = B.</p>'+
+'<p>Dans les pays germaniques, notre Si s’écrit H et la lettre B désigne le Si bémol.</p>'+
+'<h3 id="f-clavier">Dièses, bémols et clavier</h3>'+
+'<p>Une octave contient 12 notes : 7 naturelles (touches blanches) et 5 altérées (touches noires). Une touche noire prend le nom de sa voisine : dièse (♯) en partant de la touche blanche à gauche, bémol (♭) en partant de celle à droite.</p>'+
+'<p>Sur un instrument accordé en tempérament égal, comme le piano, une même touche noire porte deux noms : Do♯ et Ré♭ désignent la même hauteur.</p>'+
+'<h3 id="f-alter">Dièse, bémol, bécarre</h3>'+
+'<p>Le dièse (♯) monte une note d’un demi-ton, le bémol (♭) la descend d’un demi-ton, le bécarre (♮) annule une altération.</p>'+
+'<p>Deux notes qui sonnent pareil au piano mais s’écrivent différemment sont dites enharmoniques. Exemples : Do♯ et Ré♭, mais aussi Mi♯ et Fa, Si♯ et Do, Fa♭ et Mi, Do♭ et Si.</p>'+
+'<h3 id="f-tons">Ton et demi-ton</h3>'+
+'<p>Le demi-ton est le plus petit intervalle du système tempéré. Exemples : mi-fa, si-do, sol♯-la, ré-mi♭. Un ton vaut deux demi-tons.</p>'+
+'<p class="note">Entre Mi et Fa, comme entre Si et Do, il n’y a pas de touche noire : ces paires sont distantes d’un demi-ton.</p>'+
+'<h3 id="f-manche">Le manche et les accordages</h3>'+
+'<p>Sur une guitare, passer d’une case à la suivante monte la note d’un demi-ton.</p>'+
+'<p><b>Accordage standard</b> (de la corde grave à la plus aiguë) : E2, A2, D3, G3, B3, E4, soit Mi La Ré Sol Si Mi.</p>'+
+'<p><b>Half-step down</b> (accordage en Mi♭) : toutes les cordes descendent d’un demi-ton, soit E♭2, A♭2, D♭3, G♭3, B♭3, E♭4.</p>'+
+'<p><b>Drop D</b> : seule la corde grave descend d’un ton entier, de Mi à Ré (D2). Les autres cordes ne changent pas.</p>'+
+'<h3 id="f-octave">Octaves et fréquences</h3>'+
+'<p>Deux notes qui portent le même nom à une octave d’écart ont des fréquences dans le rapport 2 : 220, 440 et 880 Hz pour La3, La4 et La5.</p>'+
+'<p>En tempérament égal, l’octave est découpée en 12 demi-tons identiques. Chaque demi-ton multiplie la fréquence par la racine douzième de 2, soit environ 1,0595.</p>'+
+'<p>Le La4 à 440 Hz est la référence d’accordage. L’American Standards Association l’a recommandé en 1936, l’ISO l’a repris en 1955 puis normalisé en 1975 (ISO 16). En Europe continentale, on accorde souvent entre 440 et 444 Hz.</p>'+
+'<h3 id="f-nommer">Numéroter les octaves</h3>'+
+'<p>Dans la notation scientifique (ou internationale), on écrit la lettre suivie d’un numéro d’octave. Le numéro change à chaque Do : le Si juste en dessous de C4 est donc B3.</p>'+
+'<p><b>Repères :</b> Do central = C4 ≈ 261,63 Hz = note MIDI 60. La4 = note MIDI 69 = 440 Hz. La note la plus grave d’un piano standard est La0 (27,5 Hz). La corde de Mi grave d’une guitare en accordage standard sonne un Mi2 (E2), environ 82,4 Hz.</p>'+
+'<p><b>Les conventions varient.</b> Certains logiciels et claviers (Yamaha, GarageBand) appellent le Do central C3. FL Studio numérote les octaves de 0 à 10 et l’affiche C5. C’est la même note MIDI, seul le nom change. Une note de guitare E2 s’y affiche donc E3.</p>'+
+'<p class="note">Les règles de base sont stables. Les conventions des logiciels peuvent évoluer : pour un réglage précis, recoupe avec la source citée.</p>'+
+'<h3>Sources</h3>'+
+'<ol>'+
+'<li><a href="https://www.guichetdusavoir.org/question/voir/68357" target="_blank" rel="noopener">Guichet du Savoir : notation syllabique et alphabétique</a></li>'+
+'<li><a href="https://en.wikipedia.org/wiki/Musical_note" target="_blank" rel="noopener">Wikipedia : Musical note (noms de notes selon les pays, altérations)</a></li>'+
+'<li><a href="https://www.universalis.fr/encyclopedie/gamme/2-guy-d-arezzo-et-la-gamme/" target="_blank" rel="noopener">Encyclopædia Universalis : la gamme (correspondance lettres, demi-ton)</a></li>'+
+'<li><a href="https://human.libretexts.org/Bookshelves/Music/Music_Theory/Understanding_Basic_Music_Theory_(Schmidt-Jones)/01%3A_Notation_-_Pitch/1.05%3A_Enharmonic_Spelling" target="_blank" rel="noopener">LibreTexts, Understanding Basic Music Theory : enharmonie</a></li>'+
+'<li><a href="https://muted.io/guitar-tuning-chart" target="_blank" rel="noopener">Muted.io : tableau des accordages de guitare (standard, half-step down, drop D)</a></li>'+
+'<li><a href="https://www.fender.com/articles/play/alternate-tuning-drop-d" target="_blank" rel="noopener">Fender : accordage drop D</a></li>'+
+'<li><a href="https://www.cs.cmu.edu/~15322/book/ch04/01.html" target="_blank" rel="noopener">Carnegie Mellon, cours de musique par ordinateur : hauteurs et octaves</a></li>'+
+'<li><a href="https://en.wikipedia.org/wiki/A440_(pitch_standard)" target="_blank" rel="noopener">Wikipedia : A440 (pitch standard)</a></li>'+
+'<li><a href="https://en.wikipedia.org/wiki/Scientific_pitch_notation" target="_blank" rel="noopener">Wikipedia : Scientific pitch notation</a></li>'+
+'<li><a href="https://en.wikipedia.org/wiki/C_(musical_note)" target="_blank" rel="noopener">Wikipedia : C (musical note), Do central</a></li>'+
+'<li><a href="https://flutopedia.com/octave_notation.htm" target="_blank" rel="noopener">Flutopedia : notation des octaves, numéros MIDI et touches de piano</a></li>'+
+'<li><a href="https://sengpielaudio.com/calculator-notenames.htm" target="_blank" rel="noopener">Sengpielaudio : noms de notes, MIDI et étendues d’instruments</a></li>'+
+'<li><a href="https://support.novationmusic.com/hc/en-gb/articles/4886437587474" target="_blank" rel="noopener">Novation : numérotation des octaves de FL Studio (C5)</a></li>'+
+'</ol>';
+$('#doc').innerHTML=FICHE;
+var sheet=$('#sheet');
+function openSheet(id){
+  sheet.hidden=false;
+  var el=id&&document.getElementById(id);
+  if(el) el.scrollIntoView({block:'start'}); else document.querySelector('.sheet-body').scrollTop=0;
+  $('#sclose').focus({preventScroll:true});
+}
+function closeSheet(){sheet.hidden=true}
+$('#sclose').addEventListener('click',closeSheet);
+document.addEventListener('click',function(e){
+  var f=e.target.closest('[data-f]'); if(f) openSheet(f.dataset.f);
+});
+document.addEventListener('keydown',function(e){
+  if(e.key!=='Escape') return;
+  if(!sheet.hidden) closeSheet(); else if(!lesson.hidden) closeLesson();
+});
+
+/* ---------- Onglets ---------- */
+var TABS=[
+  {id:'histoire',label:'Histoire'},{id:'theorie',label:'Théorie'},{id:'guitare',label:'Guitare'},{id:'fl-studio',label:'FL Studio'},
+  {id:'mixage',label:'Mixage & mastering'},{id:'synthe',label:'Synthé'},{id:'chant',label:'Chant'},{id:'jembe',label:'Jembé'},{id:'rythme',label:'Rythme'},{id:'suivi',label:'Suivi'}
+];
+var INFO={
+  histoire:{h:'Histoire de la musique',intro:'Niveau de départ : quelques bases. Des épisodes courts pour situer les œuvres, les genres et les artistes.',
+    items:['Compositeurs et grandes œuvres','Innovations','Apparition des genres','Place des artistes','Inégalités']},
+  guitare:{h:'Guitare',intro:'Tu joues déjà. Cet onglet comble le côté théorique, sur ta Stratocaster comme sur ton électro-acoustique.',
+    items:['Notes sur le manche','Accords','Accordages','Les différentes guitares et marques','Fonctionnement des micros','Modifier une guitare'],
+    gearTitle:'Ton matériel',gear:['Fender Stratocaster électrique','Fender électro-acoustique','6 cordes','Accordages : standard, half-step down, drop D']},
+  'fl-studio':{h:'FL Studio',intro:'Tu enregistres et tu crées des sons. On passe à une organisation de projet propre et à une vraie maîtrise des plugins.',
+    items:['Prise en main depuis zéro','Organiser un projet de manière professionnelle','Plugins et VST natifs','Plugins et VST ajoutés'],
+    gearTitle:'Ton installation',gear:['FL Studio, Producer Edition','Instruments : BBC Symphony Orchestra, FLEX, Helm, SINE Player, Splice INSTRUMENT, SSDSampler5, Surge XT, TyrellN6','Effets : AmpliTube 5, Denoiser Classic, Fresh Air, LALA, TAL-Bitcrusher 2, Vinyl']},
+  mixage:{h:'Mixage et mastering',intro:'Tu pars presque de zéro. On construit une méthode pas à pas.',
+    items:['Mixer et masteriser pour un rendu professionnel','Adapter le rendu selon les plateformes de publication','Gérer les entrées de vrais instruments ou de voix']},
+  synthe:{h:'Synthétiseur',intro:'Tu as déjà utilisé des synthés. On relie les réglages à la théorie, sur tes propres instruments.',
+    items:['Créer n’importe quel son','Utiliser les modules fournis','Connaître les différences entre synthétiseurs','Relier la pratique à la théorie'],
+    gearTitle:'Tes synthés',gear:['FLEX','Helm','Surge XT','TyrellN6']},
+  chant:{h:'Chant',intro:'Tu apprends en autodidacte. On ajoute la théorie et on traite les différents types de cris, avec les précautions qui protègent la voix.',
+    items:['Les différentes techniques et comment les pratiquer','Reconnaître sa tessiture','Les différents types de cris']},
+  jembe:{h:'Jembé',intro:'Tu ne lis pas la partition. On part de la pulsation et des rythmes, puis d’une notation simple. Le module Rythme et lecture de la Théorie sert de base.',
+    items:['Bases des rythmes','Comment en jouer']}
+};
+function infoHTML(t){
+  var d=INFO[t.id];
+  return '<p class="eyebrow">'+t.label+'</p><h1 class="page">'+d.h+'</h1><p class="lede">'+d.intro+'</p>'+
+    '<div class="card"><h2>Au programme</h2><ul class="plain">'+d.items.map(function(i){return '<li>'+i+'</li>'}).join('')+'</ul></div>'+
+    (d.gear?'<div class="card"><h2>'+d.gearTitle+'</h2><ul class="chips">'+d.gear.map(function(g){return '<li class="chipx">'+g+'</li>'}).join('')+'</ul></div>':'')+
+    '<p class="status">Cet onglet sera construit après la Théorie, dans le même format d’unités et de leçons courtes.</p>';
+}
+var nav=$('#tabs'), main=$('#panels');
+TABS.forEach(function(t){
+  var b=h('<button type="button" class="tab" role="tab" id="tab-'+t.id+'" aria-controls="p-'+t.id+'" aria-selected="false">'+t.label+'</button>');
+  b.addEventListener('click',function(){ try{location.hash=t.id}catch(e){} show(t.id) });
+  nav.append(b);
+  var p=h('<section class="panel" role="tabpanel" id="p-'+t.id+'" aria-labelledby="tab-'+t.id+'" hidden></section>');
+  if(t.id!=='theorie'&&t.id!=='suivi'&&t.id!=='rythme') p.innerHTML=infoHTML(t);
+  main.append(p);
+});
+nav.append(h('<span class="tab ghost" aria-hidden="true">+ Autres sujets plus tard</span>'));
+function show(id){
+  if(!TABS.some(function(t){return t.id===id})) id='theorie';
+  if(id!=='rythme') stopEngine();
+  TABS.forEach(function(t){
+    var on=t.id===id;
+    $('#tab-'+t.id).setAttribute('aria-selected',String(on));
+    $('#p-'+t.id).hidden=!on;
+  });
+}
+window.addEventListener('hashchange',function(){show(location.hash.slice(1))});
+renderTheory(); renderSuivi(); renderRythme();
+show(location.hash.slice(1));
+})();
+</script>
+
+</body>
+</html>
